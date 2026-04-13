@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "932609847857",
+    "project_id": "vibeshopping-4ffae",
+    "storage_bucket": "vibeshopping-4ffae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932609847857:android:2dfc68dae15c0b2476db10",
+        "android_client_info": {
+          "package_name": "com.example.vibeshopping"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQ3OqK2GV6RrkXLaERLu-W3b9BR1JxeqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
