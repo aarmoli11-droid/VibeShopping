@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../../vibe_core/vibe_constants.dart';
-import '../market_explorer/market_explorer_view.dart';
+import '../../vibe_core/vibe_session.dart';
+import 'auth_gateway_forgot_password_view.dart';
 import 'auth_gateway_register_view.dart';
 import 'auth_gateway_styles.dart';
 
-/// Pantalla de acceso — UI sin autenticación real.
+/// Pantalla de acceso — UI sin autenticación real (persistencia vía [VibeSession]).
 class AuthGatewayLoginView extends StatefulWidget {
   const AuthGatewayLoginView({super.key});
 
@@ -17,14 +19,15 @@ class AuthGatewayLoginView extends StatefulWidget {
 class _AuthGatewayLoginViewState extends State<AuthGatewayLoginView> {
   final _userController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
+  bool _rememberMe = true;
+  bool _obscurePassword = true;
 
-  void _goToHome(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => const MarketExplorerShell(),
-      ),
-    );
+  Future<void> _logIn(BuildContext context) async {
+    await context.read<VibeSession>().markLoggedIn();
+  }
+
+  Future<void> _googleSignIn(BuildContext context) async {
+    await context.read<VibeSession>().markLoggedIn();
   }
 
   @override
@@ -39,208 +42,179 @@ class _AuthGatewayLoginViewState extends State<AuthGatewayLoginView> {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
+      backgroundColor: VibeColors.backgroundWhite,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthGatewayStyles.buildHeaderSection(
-            context: context,
-            headline: 'Bienvenido a VibeShopping',
+          AuthWaveHeader(
+            title: '¡Hola de nuevo!',
+            subtitle: 'Completa tus datos o continúa con Google.',
+            illustrationVariant: 0,
           ),
           Expanded(
-            flex: 68,
-            child: AuthGatewayStyles.buildAuthCard(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(22, 26, 22, 20 + bottomInset),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      controller: _userController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      decoration: AuthGatewayStyles.fieldDecoration(
-                        'Usuario o Correo',
-                        'Ingresa usuario o correo',
-                      ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(24, 8, 24, 20 + bottomInset),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _userController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    decoration: AuthGatewayStyles.fieldDecorationUnderline(
+                      label: 'Correo',
+                      hint: 'tu@correo.com',
                     ),
-                    const SizedBox(height: 18),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      decoration: AuthGatewayStyles.fieldDecoration(
-                        'Contraseña',
-                        'Ingresa tu contraseña',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          foregroundColor: VibeColors.navy.withValues(alpha: 0.65),
-                        ),
-                        child: const Text(
-                          'Olvidé mi contraseña',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Color(0x662C3E50),
-                          ),
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    textInputAction: TextInputAction.done,
+                    decoration: AuthGatewayStyles.fieldDecorationUnderline(
+                      label: 'Contraseña',
+                      hint: '••••••••',
+                      suffixIcon: IconButton(
+                        tooltip: _obscurePassword ? 'Mostrar' : 'Ocultar',
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          color: VibeColors.navy.withValues(alpha: 0.55),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        SizedBox(
-                          height: 28,
-                          child: Checkbox(
-                            value: _rememberMe,
-                            fillColor: WidgetStateProperty.resolveWith((states) {
-                              if (states.contains(WidgetState.selected)) {
-                                return VibeColors.navy;
-                              }
-                              return VibeColors.backgroundWhite;
-                            }),
-                            side: BorderSide(
-                              color: AuthMintBorder.color,
-                              width: AuthMintBorder.widthNormal,
-                            ),
-                            onChanged: (v) {
-                              setState(() => _rememberMe = v ?? false);
-                            },
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push<void>(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AuthGatewayForgotPasswordView(),
                           ),
-                        ),
-                        const Text(
-                          'Recordarme',
-                          style: TextStyle(
-                            color: VibeColors.navy,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const Spacer(),
-                        FilledButton(
-                          onPressed: () => _goToHome(context),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: VibeColors.navy,
-                            foregroundColor: VibeColors.backgroundWhite,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 22,
-                              vertical: 12,
-                            ),
-                            side: BorderSide(
-                              color: AuthMintBorder.color,
-                              width: AuthMintBorder.widthNormal,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: const Text(
-                            'Iniciar Sesión',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 22),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          '¿No tienes cuenta? ',
-                          style: TextStyle(
-                            color: VibeColors.navy.withValues(alpha: 0.75),
-                            fontSize: 14,
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {
-                            Navigator.of(context).push<void>(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const AuthGatewayRegisterView(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Regístrate aquí',
-                            style: TextStyle(
-                              color: VibeColors.navy,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Color(0xFF2C3E50),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            color: VibeColors.navy.withValues(alpha: 0.15),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: Text(
-                            'o',
-                            style: TextStyle(
-                              color: VibeColors.navy.withValues(alpha: 0.45),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            color: VibeColors.navy.withValues(alpha: 0.15),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 22),
-                    OutlinedButton.icon(
-                      onPressed: () => _goToHome(context),
-                      icon: const FaIcon(
-                        FontAwesomeIcons.google,
-                        size: 18,
-                        color: VibeColors.navy,
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: VibeColors.navy.withValues(alpha: 0.65),
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      label: const Text(
-                        'Iniciar sesión con Gmail',
+                      child: const Text(
+                        '¿Olvidaste tu contraseña?',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 28,
+                        child: Checkbox(
+                          value: _rememberMe,
+                          fillColor: WidgetStateProperty.all(VibeColors.backgroundWhite),
+                          checkColor: VibeColors.navy,
+                          side: BorderSide(
+                            color: AuthMintBorder.color,
+                            width: AuthMintBorder.widthNormal,
+                          ),
+                          onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                        ),
+                      ),
+                      const Text(
+                        'Recordarme',
                         style: TextStyle(
                           color: VibeColors.navy,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  FilledButton(
+                    onPressed: () => _logIn(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: VibeColors.mint,
+                      foregroundColor: VibeColors.navy,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Iniciar sesión',
+                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: () => _googleSignIn(context),
+                    icon: const FaIcon(
+                      FontAwesomeIcons.google,
+                      size: 18,
+                      color: VibeColors.navy,
+                    ),
+                    label: const Text(
+                      'Iniciar sesión con Google',
+                      style: TextStyle(
+                        color: VibeColors.navy,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(
+                        color: AuthMintBorder.color,
+                        width: AuthMintBorder.widthNormal,
+                      ),
+                      backgroundColor: VibeColors.backgroundWhite,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        '¿Usuario nuevo? ',
+                        style: TextStyle(
+                          color: VibeColors.navy.withValues(alpha: 0.75),
                           fontSize: 14,
                         ),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(
-                          color: AuthMintBorder.color,
-                          width: AuthMintBorder.widthNormal,
-                        ),
-                        backgroundColor: VibeColors.backgroundWhite,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AuthGatewayRegisterView(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Crear cuenta',
+                          style: TextStyle(
+                            color: VibeColors.navy,
+                            fontWeight: FontWeight.w800,
+                            decoration: TextDecoration.underline,
+                            decorationColor: VibeColors.navy,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

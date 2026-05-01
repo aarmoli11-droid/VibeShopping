@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../vibe_core/vibe_constants.dart';
-import '../../vibe_datasource/models/vibe_store_kind.dart';
+import '../../models/vibe_store_kind.dart';
 
 /// Datos de producto para detalle y comparativa (UI).
 class ProductDetailData {
   const ProductDetailData({
     required this.id,
+    required this.categoryId,
     required this.name,
     required this.description,
     required this.imageUrls,
@@ -14,6 +15,8 @@ class ProductDetailData {
   });
 
   final String id;
+  /// Identificador de categoría para filtrado en el explorador (ej. `lacteos`).
+  final String categoryId;
   final String name;
   final String description;
   final List<String> imageUrls;
@@ -28,6 +31,46 @@ class ProductDetailData {
     }
     return priceByStore.values.first;
   }
+
+  /// Cadena asociada al precio mostrado en grilla ([gridPriceLabel]).
+  VibeStoreKind? get gridPriceStore {
+    if (priceByStore.isEmpty) return null;
+    for (final k in VibeStoreKind.values) {
+      final p = priceByStore[k];
+      if (p != null && p.isNotEmpty) return k;
+    }
+    return priceByStore.keys.first;
+  }
+
+  /// Precio y tienda de referencia en Home según filtro de supermercados.
+  GridPriceRef resolveGridPrice({
+    required bool allStores,
+    required Set<VibeStoreKind> selectedKinds,
+  }) {
+    final stores = resolveStoresForComparison(allStores, selectedKinds);
+    for (final k in stores) {
+      final p = priceByStore[k];
+      if (p != null && p.isNotEmpty) {
+        return GridPriceRef(price: p, store: k);
+      }
+    }
+    if (priceByStore.isEmpty) return const GridPriceRef(price: '—', store: null);
+    for (final k in VibeStoreKind.values) {
+      final p = priceByStore[k];
+      if (p != null && p.isNotEmpty) {
+        return GridPriceRef(price: p, store: k);
+      }
+    }
+    return GridPriceRef(price: priceByStore.values.first, store: priceByStore.keys.first);
+  }
+}
+
+/// Resultado de [ProductDetailData.resolveGridPrice] para la etiqueta de precio en grilla.
+class GridPriceRef {
+  const GridPriceRef({required this.price, this.store});
+
+  final String price;
+  final VibeStoreKind? store;
 }
 
 /// Supermercados a mostrar en la tabla según la selección del explorador.
@@ -104,8 +147,22 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       itemCount: urls.length,
                       onPageChanged: (i) => setState(() => _pageIndex = i),
                       itemBuilder: (context, i) {
-                        return Image.network(
-                          urls[i],
+                        final imageUrl = urls[i].trim();
+                        final isNetwork =
+                            imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+                        if (isNetwork) {
+                          return Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: VibeColors.mint.withValues(alpha: 0.25),
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.image_not_supported_outlined),
+                            ),
+                          );
+                        }
+                        return Image.asset(
+                          imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: VibeColors.mint.withValues(alpha: 0.25),

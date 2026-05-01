@@ -1,4 +1,4 @@
-import '../models/models.dart';
+import '../../models/models.dart';
 import 'vibe_market_catalog_repository.dart';
 
 /// Implementación temporal en memoria — sustituir por Firestore u otra fuente.

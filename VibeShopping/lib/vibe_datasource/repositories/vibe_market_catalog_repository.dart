@@ -1,4 +1,4 @@
-import '../models/models.dart';
+import '../../models/models.dart';
 
 /// Contrato para obtener referencias de tiendas/cadenas (solo lectura / informativo).
 abstract class VibeMarketCatalogRepository {
