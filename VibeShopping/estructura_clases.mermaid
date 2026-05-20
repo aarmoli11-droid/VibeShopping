@@ -1,0 +1,774 @@
+@startuml
+set namespaceSeparator ::
+
+class "vibeshopping::main.dart::VibeShoppingApp" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::main.dart::VibeShoppingApp"
+
+class "vibeshopping::vibe_core::auth_service.dart::AuthService" {
+  {static} +AuthService instance
+  -SupabaseClient _supabase
+  +User? currentUser
+  +dynamic signOut()
+  +dynamic signIn()
+  +dynamic signUp()
+}
+
+"vibeshopping::vibe_core::auth_service.dart::AuthService" o-- "vibeshopping::vibe_core::auth_service.dart::AuthService"
+"vibeshopping::vibe_core::auth_service.dart::AuthService" o-- "supabase::src::supabase_client.dart::SupabaseClient"
+"vibeshopping::vibe_core::auth_service.dart::AuthService" o-- "gotrue::src::types::user.dart::User"
+
+class "vibeshopping::vibe_core::session.dart::VibeSession" {
+  {static} +VibeSession instance
+  {static} -String _kLoggedInKey
+  -SharedPreferences? _prefs
+  -bool _isLoggedIn
+  +bool isLoggedIn
+  +dynamic init()
+  +dynamic markLoggedIn()
+  +dynamic markGuest()
+  -dynamic _restoreSessionState()
+  -dynamic _hasValidSupabaseSession()
+}
+
+"vibeshopping::vibe_core::session.dart::VibeSession" o-- "vibeshopping::vibe_core::session.dart::VibeSession"
+"vibeshopping::vibe_core::session.dart::VibeSession" o-- "shared_preferences::src::shared_preferences_legacy.dart::SharedPreferences"
+"flutter::src::foundation::change_notifier.dart::ChangeNotifier" <|-- "vibeshopping::vibe_core::session.dart::VibeSession"
+
+class "vibeshopping::vibe_core::supabase_config.dart::VibeSupabaseConfig" {
+  {static} +String url
+  {static} +String anonKey
+  {static} +bool isConfigured
+}
+
+abstract class "vibeshopping::vibe_core::vibe_colors.dart::VibeColors" {
+  {static} +Color navy
+  {static} +Color mint
+  {static} +Color backgroundMint
+  {static} +Color backgroundWhite
+}
+
+"vibeshopping::vibe_core::vibe_colors.dart::VibeColors" o-- "dart::ui::Color"
+
+abstract class "vibeshopping::vibe_core::vibe_constants.dart::VibeColors" {
+  {static} +Color navy
+  {static} +Color mint
+  {static} +Color backgroundMint
+  {static} +Color backgroundWhite
+}
+
+"vibeshopping::vibe_core::vibe_constants.dart::VibeColors" o-- "dart::ui::Color"
+
+abstract class "vibeshopping::vibe_core::vibe_constants.dart::VibeConfig" {
+  {static} +String firebaseProjectId
+  {static} +String geminiApiKey
+  {static} +String geminiModel
+}
+
+abstract class "vibeshopping::vibe_core::vibe_constants.dart::VibeBusinessRules" {
+  {static} +bool allowCartOrPurchaseActions
+  {static} +Duration forumMessageVisibility
+}
+
+abstract class "vibeshopping::vibe_core::vibe_theme.dart::VibeTheme" {
+  {static} +ThemeData light
+  {static} +LinearGradient screenBackgroundGradient
+}
+
+"vibeshopping::vibe_core::vibe_theme.dart::VibeTheme" o-- "flutter::src::material::theme_data.dart::ThemeData"
+"vibeshopping::vibe_core::vibe_theme.dart::VibeTheme" o-- "flutter::src::painting::gradient.dart::LinearGradient"
+
+abstract class "vibeshopping::vibe_data::repositories::market_catalog_repository.dart::VibeMarketCatalogRepository" {
+  +dynamic listWalmartRefs()
+  +dynamic listMaxiPaliRefs()
+  +dynamic listBmRefs()
+  +dynamic listCoopeagriRefs()
+}
+
+class "vibeshopping::vibe_data::repositories::market_catalog_repository_stub.dart::VibeMarketCatalogRepositoryStub" {
+  +dynamic listBmRefs()
+  +dynamic listCoopeagriRefs()
+  +dynamic listMaxiPaliRefs()
+  +dynamic listWalmartRefs()
+}
+
+"vibeshopping::vibe_data::repositories::market_catalog_repository.dart::VibeMarketCatalogRepository" <|-- "vibeshopping::vibe_data::repositories::market_catalog_repository_stub.dart::VibeMarketCatalogRepositoryStub"
+
+class "vibeshopping::vibe_data::vibe_community_chat::community_chat_message_query.dart::CommunityChatMessageQuery" {
+  -SupabaseClient _supabase
+  {static} +String tableName
+  {static} +String defaultTimestampField
+  +Stream<List<Map<String, dynamic>>> visibleMessagesStream()
+}
+
+"vibeshopping::vibe_data::vibe_community_chat::community_chat_message_query.dart::CommunityChatMessageQuery" o-- "supabase::src::supabase_client.dart::SupabaseClient"
+
+class "vibeshopping::vibe_data::vibe_services::gemini_assistant_service.dart::GeminiShoppingAssistantService" {
+  -GenerativeModel _model
+  +dynamic askShoppingQuestion()
+}
+
+"vibeshopping::vibe_data::vibe_services::gemini_assistant_service.dart::GeminiShoppingAssistantService" o-- "google_generative_ai::src::model.dart::GenerativeModel"
+
+class "vibeshopping::vibe_logic::entities::basket_product_entity.dart::BasketProductEntity" {
+  +String id
+  +String name
+  +String? category
+  +String? referenceUnit
+  +String? notes
+}
+
+class "vibeshopping::vibe_logic::product_sorter.dart::ProductSorter" {
+  {static} +Map<String, List<ProductDetailData>> groupProductsByStore()
+}
+
+class "vibeshopping::vibe_logic::shopping_list_service.dart::ShoppingListService" {
+  {static} -SupabaseClient _supabase
+  {static} +dynamic addItem()
+  {static} +dynamic removeItem()
+  {static} +dynamic updateQuantity()
+  {static} +dynamic fetchItems()
+  {static} +double calculateTotal()
+}
+
+"vibeshopping::vibe_logic::shopping_list_service.dart::ShoppingListService" o-- "supabase::src::supabase_client.dart::SupabaseClient"
+
+class "vibeshopping::vibe_logic::usecases::list_basket_products_usecase.dart::ListBasketProductsUsecase" {
+  +dynamic call()
+}
+
+class "vibeshopping::vibe_models::bm_store_model.dart::BmStoreModel" {
+  +String storeId
+  +String displayName
+  +String? regionCode
+  {static} +VibeStoreKind kind
+  +Map<String, dynamic> toMap()
+}
+
+"vibeshopping::vibe_models::bm_store_model.dart::BmStoreModel" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_models::coopeagri_store_model.dart::CoopeagriStoreModel" {
+  +String storeId
+  +String displayName
+  +String? cooperativeZone
+  {static} +VibeStoreKind kind
+  +Map<String, dynamic> toMap()
+}
+
+"vibeshopping::vibe_models::coopeagri_store_model.dart::CoopeagriStoreModel" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_models::maxi_pali_store_model.dart::MaxiPaliStoreModel" {
+  +String storeId
+  +String displayName
+  +String? regionCode
+  +String? branchName
+  {static} +VibeStoreKind kind
+  +Map<String, dynamic> toMap()
+}
+
+"vibeshopping::vibe_models::maxi_pali_store_model.dart::MaxiPaliStoreModel" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind" {
+  +int index
+  {static} +List<VibeStoreKind> values
+  {static} +VibeStoreKind walmart
+}
+
+"vibeshopping::vibe_models::store_kind.dart::VibeStoreKind" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+"dart::core::Enum" <|-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_models::walmart_store_model.dart::WalmartStoreModel" {
+  +String storeId
+  +String displayName
+  +String? regionCode
+  +String? externalCatalogUrl
+  {static} +VibeStoreKind kind
+  +Map<String, dynamic> toMap()
+}
+
+"vibeshopping::vibe_models::walmart_store_model.dart::WalmartStoreModel" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_ui::assistant::vibe_ai_assistant.dart::VibeAiAssistant" {
+  {static} +dynamic showAssistantSheet()
+  {static} +Widget buildFloatingButton()
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::assistant::vibe_ai_assistant.dart::VibeAiAssistant"
+
+class "vibeshopping::vibe_ui::assistant::vibe_ai_bubble.dart::VibeAiBubble" {
+  +String text
+  +bool isUser
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::assistant::vibe_ai_bubble.dart::VibeAiBubble"
+
+class "vibeshopping::vibe_ui::assistant::vibe_ai_input_overlay.dart::VibeAiInputOverlay" {
+  +void Function() onPressed
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::assistant::vibe_ai_input_overlay.dart::VibeAiInputOverlay" o-- "dart::ui::void Function()"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::assistant::vibe_ai_input_overlay.dart::VibeAiInputOverlay"
+
+class "vibeshopping::vibe_ui::assistant::vibe_assistant_view.dart::VibeAssistantView" {
+  {static} +dynamic showAssistantSheet()
+}
+
+class "vibeshopping::vibe_ui::auth::auth_forgot_password_view.dart::AuthGatewayForgotPasswordView" {
+  +State<AuthGatewayForgotPasswordView> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::auth::auth_forgot_password_view.dart::AuthGatewayForgotPasswordView"
+
+class "vibeshopping::vibe_ui::auth::auth_forgot_password_view.dart::_AuthGatewayForgotPasswordViewState" {
+  -TextEditingController _emailController
+  +void dispose()
+  -dynamic _sendReset()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::auth::auth_forgot_password_view.dart::_AuthGatewayForgotPasswordViewState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::auth::auth_forgot_password_view.dart::_AuthGatewayForgotPasswordViewState"
+
+class "vibeshopping::vibe_ui::auth::auth_placeholder.dart::AuthGatewayLoginView" {
+  +State<AuthGatewayLoginView> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::auth::auth_placeholder.dart::AuthGatewayLoginView"
+
+class "vibeshopping::vibe_ui::auth::auth_placeholder.dart::_AuthGatewayLoginViewState" {
+  -TextEditingController _userController
+  -TextEditingController _passwordController
+  -bool _rememberMe
+  -bool _obscurePassword
+  -dynamic _logIn()
+  -dynamic _googleSignIn()
+  +void dispose()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::auth::auth_placeholder.dart::_AuthGatewayLoginViewState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::auth::auth_placeholder.dart::_AuthGatewayLoginViewState"
+
+class "vibeshopping::vibe_ui::auth::auth_register_view.dart::AuthGatewayRegisterView" {
+  +State<AuthGatewayRegisterView> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::auth::auth_register_view.dart::AuthGatewayRegisterView"
+
+class "vibeshopping::vibe_ui::auth::auth_register_view.dart::_AuthGatewayRegisterViewState" {
+  -TextEditingController _nameController
+  -TextEditingController _userController
+  -TextEditingController _passwordController
+  -TextEditingController _confirmController
+  -bool _obscurePassword
+  -bool _obscureConfirm
+  -bool _isLoading
+  -dynamic _register()
+  -dynamic _googleSignUp()
+  +void dispose()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::auth::auth_register_view.dart::_AuthGatewayRegisterViewState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::auth::auth_register_view.dart::_AuthGatewayRegisterViewState"
+
+abstract class "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthMintBorder" {
+  {static} +Color color
+  {static} +double widthNormal
+  {static} +double widthFocused
+}
+
+"vibeshopping::vibe_ui::auth::auth_styles.dart::AuthMintBorder" o-- "dart::ui::Color"
+
+abstract class "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthGatewayStyles" {
+  {static} +LinearGradient headerGradient
+  {static} +Widget buildLogoHero()
+  {static} +InputDecoration fieldDecoration()
+  {static} +InputDecoration fieldDecorationUnderline()
+  {static} +Widget buildAuthCard()
+  {static} +Widget buildHeaderSection()
+}
+
+"vibeshopping::vibe_ui::auth::auth_styles.dart::AuthGatewayStyles" o-- "flutter::src::painting::gradient.dart::LinearGradient"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthWaveHeader" {
+  +String title
+  +String subtitle
+  +int illustrationVariant
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthWaveHeader"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthWaveClipper" {
+  +Path getClip()
+  +bool shouldReclip()
+}
+
+"flutter::src::rendering::proxy_box.dart::CustomClipper" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthWaveClipper"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::_ShoppingIllustrationPainter" {
+  +int variant
+  +Color figureColor
+  +Color accentColor
+  +void paint()
+  +bool shouldRepaint()
+}
+
+"vibeshopping::vibe_ui::auth::auth_styles.dart::_ShoppingIllustrationPainter" o-- "dart::ui::Color"
+"flutter::src::rendering::custom_paint.dart::CustomPainter" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::_ShoppingIllustrationPainter"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthHeroBackground" {
+  +double intensity
+  +State<AuthHeroBackground> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::AuthHeroBackground"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthHeroBackgroundState" {
+  -AnimationController _c
+  +void initState()
+  +void dispose()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthHeroBackgroundState" o-- "flutter::src::animation::animation_controller.dart::AnimationController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthHeroBackgroundState"
+"flutter::src::widgets::ticker_provider.dart::SingleTickerProviderStateMixin" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::_AuthHeroBackgroundState"
+
+class "vibeshopping::vibe_ui::auth::auth_styles.dart::_GlowBlob" {
+  +Alignment alignment
+  +Color color
+  +double size
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::auth::auth_styles.dart::_GlowBlob" o-- "flutter::src::painting::alignment.dart::Alignment"
+"vibeshopping::vibe_ui::auth::auth_styles.dart::_GlowBlob" o-- "dart::ui::Color"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::auth::auth_styles.dart::_GlowBlob"
+
+class "vibeshopping::vibe_ui::auth::join_community_gate.dart::VibeJoinAction" {
+  +int index
+  {static} +List<VibeJoinAction> values
+  {static} +VibeJoinAction login
+  {static} +VibeJoinAction register
+}
+
+"vibeshopping::vibe_ui::auth::join_community_gate.dart::VibeJoinAction" o-- "vibeshopping::vibe_ui::auth::join_community_gate.dart::VibeJoinAction"
+"dart::core::Enum" <|-- "vibeshopping::vibe_ui::auth::join_community_gate.dart::VibeJoinAction"
+
+class "vibeshopping::vibe_ui::common_widgets::product_card.dart::VibeProductCard" {
+  +ProductDetailData data
+  +void Function() onAdd
+  +void Function() onTap
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::common_widgets::product_card.dart::VibeProductCard" o-- "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailData"
+"vibeshopping::vibe_ui::common_widgets::product_card.dart::VibeProductCard" o-- "dart::ui::void Function()"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::common_widgets::product_card.dart::VibeProductCard"
+
+class "vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::VibeProductCard" {
+  +ProductDetailData data
+  +bool allStores
+  +Set<VibeStoreKind> selectedKinds
+  +void Function() onTap
+  -bool _showStoreOnPrice
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::VibeProductCard" o-- "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailData"
+"vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::VibeProductCard" o-- "dart::ui::void Function()"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::VibeProductCard"
+
+class "vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::_StoreLogoBadge" {
+  +VibeStoreKind kind
+  +double size
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::_StoreLogoBadge" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::common_widgets::vibe_product_card.dart::_StoreLogoBadge"
+
+class "vibeshopping::vibe_ui::community::chat_bubble.dart::FullscreenImageView" {
+  +String imageUrl
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_bubble.dart::FullscreenImageView"
+
+class "vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityBubble" {
+  +CommunityMessage message
+  +dynamic Function(String)? onDelete
+  -void _showDeleteDialog()
+  -void _openImage()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityBubble" o-- "vibeshopping::vibe_ui::community::models::community_models.dart::CommunityMessage"
+"vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityBubble" o-- "null::dynamic Function(String)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityBubble"
+
+class "vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityReferenceBubble" {
+  +CommunityFeedItem item
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityReferenceBubble" o-- "vibeshopping::vibe_ui::community::models::community_models.dart::CommunityFeedItem"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_bubble.dart::CommunityReferenceBubble"
+
+class "vibeshopping::vibe_ui::community::chat_input.dart::ChatInput" {
+  +TextEditingController controller
+  +void Function() onCameraPressed
+  +void Function() onSendPressed
+  +void Function() onAssistantPressed
+  +bool sending
+  +bool uploadingImage
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::chat_input.dart::ChatInput" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"vibeshopping::vibe_ui::community::chat_input.dart::ChatInput" o-- "dart::ui::void Function()"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_input.dart::ChatInput"
+
+class "vibeshopping::vibe_ui::community::chat_input.dart::ActionIconButton" {
+  +Widget icon
+  +void Function()? onTap
+  +Color backgroundColor
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::chat_input.dart::ActionIconButton" o-- "flutter::src::widgets::framework.dart::Widget"
+"vibeshopping::vibe_ui::community::chat_input.dart::ActionIconButton" o-- "dart::ui::void Function()"
+"vibeshopping::vibe_ui::community::chat_input.dart::ActionIconButton" o-- "dart::ui::Color"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_input.dart::ActionIconButton"
+
+class "vibeshopping::vibe_ui::community::chat_list.dart::ChatList" {
+  +Stream<List<CommunityMessage>> messagesStream
+  +List<CommunityFeedItem> referenceFeed
+  +dynamic Function(String) onDeleteMessage
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::chat_list.dart::ChatList" o-- "dart::async::Stream<List<CommunityMessage>>"
+"vibeshopping::vibe_ui::community::chat_list.dart::ChatList" o-- "null::dynamic Function(String)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::community::chat_list.dart::ChatList"
+
+class "vibeshopping::vibe_ui::community::community_view.dart::VibeCommunityView" {
+  +State<VibeCommunityView> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::community::community_view.dart::VibeCommunityView"
+
+class "vibeshopping::vibe_ui::community::community_view.dart::_VibeCommunityViewState" {
+  -TextEditingController _composerController
+  -ImagePicker _imagePicker
+  -bool _sendingMessage
+  -bool _uploadingImage
+  {static} -String _tableName
+  {static} -String _storageBucket
+  -SupabaseClient? _supabaseClient
+  -Stream<List<CommunityMessage>> _communityMessagesStream()
+  -dynamic _checkAuthAndRedirect()
+  +dynamic deleteMessage()
+  -dynamic _sendCurrentTextMessage()
+  -dynamic _pickAndUploadImage()
+  +void initState()
+  -dynamic _performCleanup()
+  +void dispose()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::community::community_view.dart::_VibeCommunityViewState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"vibeshopping::vibe_ui::community::community_view.dart::_VibeCommunityViewState" o-- "image_picker::image_picker.dart::ImagePicker"
+"vibeshopping::vibe_ui::community::community_view.dart::_VibeCommunityViewState" o-- "supabase::src::supabase_client.dart::SupabaseClient"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::community::community_view.dart::_VibeCommunityViewState"
+
+class "vibeshopping::vibe_ui::community::models::community_models.dart::CommunityMessage" {
+  +String id
+  +String author
+  +String text
+  +bool mine
+  +DateTime createdAt
+  +String? imageUrl
+  +String? timestampOverride
+  +String timestampLabel
+}
+
+class "vibeshopping::vibe_ui::community::models::community_models.dart::CommunityFeedItem" {
+  +ReferenceBubbleType type
+  +bool mine
+  +String? text
+  +String? timestamp
+  +String? imageUrl
+  +String? actionLabel
+}
+
+"vibeshopping::vibe_ui::community::models::community_models.dart::CommunityFeedItem" o-- "vibeshopping::vibe_ui::community::models::community_models.dart::ReferenceBubbleType"
+
+class "vibeshopping::vibe_ui::community::models::community_models.dart::ReferenceBubbleType" {
+  +int index
+  {static} +List<ReferenceBubbleType> values
+  {static} +ReferenceBubbleType text
+  {static} +ReferenceBubbleType productCard
+}
+
+"vibeshopping::vibe_ui::community::models::community_models.dart::ReferenceBubbleType" o-- "vibeshopping::vibe_ui::community::models::community_models.dart::ReferenceBubbleType"
+"dart::core::Enum" <|-- "vibeshopping::vibe_ui::community::models::community_models.dart::ReferenceBubbleType"
+
+class "vibeshopping::vibe_ui::Home::market_explorer_view.dart::MarketExplorerShell" {
+  +State<MarketExplorerShell> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::Home::market_explorer_view.dart::MarketExplorerShell"
+
+class "vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerShellState" {
+  -int _navIndex
+  -GlobalKey<ScaffoldState> _scaffoldKey
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerShellState" o-- "flutter::src::widgets::framework.dart::GlobalKey<ScaffoldState>"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerShellState"
+
+class "vibeshopping::vibe_ui::Home::market_explorer_view.dart::MarketExplorerHomeView" {
+  +GlobalKey<ScaffoldState>? scaffoldKey
+  +State<MarketExplorerHomeView> createState()
+}
+
+"vibeshopping::vibe_ui::Home::market_explorer_view.dart::MarketExplorerHomeView" o-- "flutter::src::widgets::framework.dart::GlobalKey<ScaffoldState>"
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::Home::market_explorer_view.dart::MarketExplorerHomeView"
+
+class "vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerHomeViewState" {
+  -bool _allStores
+  -Set<VibeStoreKind> _selectedKinds
+  -String? _categoryId
+  -bool _isLoading
+  -TextEditingController _searchController
+  -String _UbicationZone
+  -List<ProductDetailData> _products
+  {static} -List<VibeCategoryOption> _categories
+  -dynamic _fetchProducts()
+  +void initState()
+  +void dispose()
+  -Map<String, List<ProductDetailData>> _filterAndGroupProducts()
+  -String _selectorLabel()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerHomeViewState" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::Home::market_explorer_view.dart::_MarketExplorerHomeViewState"
+
+class "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailData" {
+  +String id
+  +String categoryId
+  +String? subcategory
+  +String name
+  +String description
+  +List<String> imageUrls
+  +Map<VibeStoreKind, String> priceByStore
+  +dynamic rawPrice
+  +String gridPriceLabel
+  +String displayPrice
+  +VibeStoreKind? gridPriceStore
+  +GridPriceRef resolveGridPrice()
+}
+
+"vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailData" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_ui::Home::product_detail_view.dart::GridPriceRef" {
+  +String price
+  +VibeStoreKind? store
+}
+
+"vibeshopping::vibe_ui::Home::product_detail_view.dart::GridPriceRef" o-- "vibeshopping::vibe_models::store_kind.dart::VibeStoreKind"
+
+class "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailView" {
+  +ProductDetailData product
+  +List<VibeStoreKind> comparisonStores
+  +State<ProductDetailView> createState()
+}
+
+"vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailView" o-- "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailData"
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::Home::product_detail_view.dart::ProductDetailView"
+
+class "vibeshopping::vibe_ui::Home::product_detail_view.dart::_ProductDetailViewState" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::Home::product_detail_view.dart::_ProductDetailViewState"
+
+class "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::ShoppingListView" {
+  +State<ShoppingListView> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::ShoppingListView"
+
+class "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingListViewState" {
+  -dynamic _itemsFuture
+  +void initState()
+  -void _loadItems()
+  -dynamic _removeItem()
+  -dynamic _updateQuantity()
+  -Map<String, List<Map<String, dynamic>>> _groupItems()
+  -double _calculateTotal()
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingListViewState"
+
+class "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingProductCard" {
+  +Map<String, dynamic> product
+  +void Function() onDelete
+  +dynamic Function(int) onQuantityChanged
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingProductCard" o-- "dart::ui::void Function()"
+"vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingProductCard" o-- "null::dynamic Function(int)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_ShoppingProductCard"
+
+class "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_StickyFooter" {
+  +double total
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::views::shopping_list_view.dart::_StickyFooter"
+
+class "vibeshopping::vibe_ui::Home::views::vibe_manual_lists_view.dart::VibeManualListsView" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::views::vibe_manual_lists_view.dart::VibeManualListsView"
+
+class "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_bar.dart::VibeCategoryBar" {
+  +List<VibeCategoryOption> categories
+  +String? selectedCategoryId
+  +void Function(String) onCategorySelected
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_bar.dart::VibeCategoryBar" o-- "flutter::src::foundation::basic_types.dart::void Function(String)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_bar.dart::VibeCategoryBar"
+
+class "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_bar.dart::VibeCategoryOption" {
+  +String id
+  +String label
+  +String iconAsset
+}
+
+class "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_chip.dart::VibeCategoryChip" {
+  +String label
+  +String iconAsset
+  +bool selected
+  +void Function(bool) onSelected
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_chip.dart::VibeCategoryChip" o-- "flutter::src::foundation::basic_types.dart::void Function(bool)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_chip.dart::VibeCategoryChip"
+
+class "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_chip.dart::_CategoryChipIcon" {
+  +String assetPath
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::categories::vibe_category_chip.dart::_CategoryChipIcon"
+
+class "vibeshopping::vibe_ui::Home::widgets::header::vibe_brand_logo.dart::VibeBrandLogo" {
+  +double size
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::header::vibe_brand_logo.dart::VibeBrandLogo"
+
+class "vibeshopping::vibe_ui::Home::widgets::header::vibe_location_chip.dart::VibeLocationChip" {
+  +String deliveryZone
+  +double locationMaxWidth
+  +void Function() onTap
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::header::vibe_location_chip.dart::VibeLocationChip" o-- "dart::ui::void Function()"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::header::vibe_location_chip.dart::VibeLocationChip"
+
+class "vibeshopping::vibe_ui::Home::widgets::header::vibe_search_bar.dart::VibeSearchBar" {
+  +TextEditingController controller
+  +double searchHintSize
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::header::vibe_search_bar.dart::VibeSearchBar" o-- "flutter::src::widgets::editable_text.dart::TextEditingController"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::header::vibe_search_bar.dart::VibeSearchBar"
+
+class "vibeshopping::vibe_ui::Home::widgets::market_profile_placeholder.dart::MarketProfilePlaceholder" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::market_profile_placeholder.dart::MarketProfilePlaceholder"
+
+class "vibeshopping::vibe_ui::Home::widgets::modals::vibe_selection_modals.dart::VibeSelectionModals" {
+  {static} +void openLocationPicker()
+  {static} +void openStorePicker()
+}
+
+class "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::VibeImageSlider" {
+  +List<String> urls
+  +State<VibeImageSlider> createState()
+}
+
+"flutter::src::widgets::framework.dart::StatefulWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::VibeImageSlider"
+
+class "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_VibeImageSliderState" {
+  -PageController _controller
+  -int _index
+  +void initState()
+  +void dispose()
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_VibeImageSliderState" o-- "flutter::src::widgets::page_view.dart::PageController"
+"flutter::src::widgets::framework.dart::State" <|-- "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_VibeImageSliderState"
+
+class "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_NetworkOrAssetImage" {
+  +String url
+  {static} -Color _placeholder
+  +Widget build()
+  -Widget _imageError()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_NetworkOrAssetImage" o-- "dart::ui::Color"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::products::vibe_image_slider.dart::_NetworkOrAssetImage"
+
+class "vibeshopping::vibe_ui::Home::widgets::products::vibe_product_grid.dart::VibeProductGrid" {
+  +List<ProductDetailData> products
+  +bool allStores
+  +Set<VibeStoreKind> selectedKinds
+  +void Function(ProductDetailData) onProductTap
+  +Widget build()
+}
+
+"vibeshopping::vibe_ui::Home::widgets::products::vibe_product_grid.dart::VibeProductGrid" o-- "flutter::src::foundation::basic_types.dart::void Function(ProductDetailData)"
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::products::vibe_product_grid.dart::VibeProductGrid"
+
+class "vibeshopping::vibe_ui::Home::widgets::store_section.dart::StoreSection" {
+  +String storeName
+  +List<ProductDetailData> products
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::store_section.dart::StoreSection"
+
+class "vibeshopping::vibe_ui::Home::widgets::vibe_side_drawer.dart::VibeSideDrawer" {
+  +Widget build()
+}
+
+"flutter::src::widgets::framework.dart::StatelessWidget" <|-- "vibeshopping::vibe_ui::Home::widgets::vibe_side_drawer.dart::VibeSideDrawer"
+
+
+@enduml
