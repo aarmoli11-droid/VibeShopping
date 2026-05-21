@@ -1,17 +1,17 @@
 
 import 'package:flutter/material.dart';
-import '../../vibe_core/vibe_colors.dart';
-import '../../vibe_models/store_kind.dart';
+import '../../../vibe_core/vibe_colors.dart';
+import '../../../vibe_models/store_kind.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibeshopping/vibe_ui/common_widgets/vibe_product_card.dart';
-import 'views/shopping_list_view.dart';
-import '../assistant/vibe_ai_assistant.dart';
-import '../community/community_view.dart';
-import 'widgets/header/vibe_brand_logo.dart';
-import 'widgets/header/vibe_search_bar.dart';
-import 'widgets/categories/vibe_category_bar.dart';
-import 'widgets/vibe_side_drawer.dart';
-import 'widgets/modals/vibe_selection_modals.dart';
+import 'shopping_list_view.dart';
+import '../../assistant/vibe_ai_assistant.dart';
+import '../../community/community_view.dart';
+import '../widgets/header/vibe_brand_logo.dart';
+import '../widgets/header/vibe_search_bar.dart';
+import '../widgets/categories/vibe_category_bar.dart';
+import '../widgets/vibe_side_drawer.dart';
+import '../widgets/modals/vibe_selection_modals.dart';
 import './product_detail_view.dart';
 
 class MarketExplorerShell extends StatefulWidget {
@@ -76,15 +76,14 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
   String? _categoryId;
   bool _isLoading = false;
   final TextEditingController _searchController = TextEditingController();
-  String _UbicationZone = 'San Isidro';
+  String _locationZone = 'San Isidro';
 
   Future<void> _fetchProducts() async {
     setState(() => _isLoading = true);
     try {
-      // Query con join a supermarkets obligatorio
       var query = Supabase.instance.client
           .from('products')
-          .select('*, supermarkets(name, logo_url)');
+          .select('*, supermarkets(*)');
           
       if (_categoryId != null && _categoryId != 'todo') {
         if (_categoryId == 'abarrotes') {
@@ -98,20 +97,10 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
         }
       }
       
-      // Aplicar filtro de tiendas si no se seleccionaron todas
       if (!_allStores && _selectedKinds.isNotEmpty) {
-        // En lugar de pasar nombres, aquí deberíamos filtrar por supermarket_id.
-        // Asumiendo que el campo 'supermarket_id' en 'products' contiene el UUID correspondiente.
-        // Si no tienes los UUIDs mapeados, necesitas cargarlos previamente.
-        // Por ahora, usaremos el nombre si así es como está estructurada la BD, 
-        // pero para corregir el error 22P02, debemos cambiar la estructura de la consulta.
-        // query = query.inFilter('supermarket_id', uuids);
         
-        // Puesto que no tengo los UUIDs exactos, esta lógica debe ser adaptada
-        // cuando sepas qué IDs corresponden a cada tienda.
-        // Mapa actualizado con UUIDs reales (Supabase)
         final Map<String, String> storeIds = {
-          'Walmart': '550e8400-e29b-41d4-a716-446655440000', // Ejemplo
+          'Walmart': '550e8400-e29b-41d4-a716-446655440000',
           'MaxiPalí': '550e8400-e29b-41d4-a716-446655440001',
           'Supermercados BM': '550e8400-e29b-41d4-a716-446655440002',
           'CoopeAgri': '550e8400-e29b-41d4-a716-446655440003',
@@ -123,7 +112,11 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
             .toList();
             
         if (selectedUuids.isNotEmpty) {
-          query = query.inFilter('supermarket_id', selectedUuids);
+          if (selectedUuids.length == 1) {
+            query = query.eq('supermarket_id', selectedUuids.first);
+          } else {
+            query = query.inFilter('supermarket_id', selectedUuids);
+          }
         }
       }
       
@@ -160,7 +153,6 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
     final searchQuery = _searchController.text.toLowerCase();
     final bool isSearching = searchQuery.isNotEmpty;
 
-    // 1. Filtrar
     Iterable<ProductDetailData> filteredProducts = _products;
     if (isSearching) {
       filteredProducts = filteredProducts.where((p) =>
@@ -168,7 +160,6 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
           (p.subcategory != null && p.subcategory!.toLowerCase().contains(searchQuery)));
     }
 
-    // 2. Agrupar por subcategory (Mini-Pasillos) - Requerimiento Estricto
     final grouped = <String, List<ProductDetailData>>{};
     for (var p in filteredProducts) {
       final String key = (p.subcategory != null && p.subcategory!.trim().isNotEmpty)
@@ -256,15 +247,15 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
                 GestureDetector(
                   onTap: () => VibeSelectionModals.openLocationPicker(
                     context, 
-                    _UbicationZone, 
-                    (z) => setState(() => _UbicationZone = z),
+                    _locationZone, 
+                    (z) => setState(() => _locationZone = z),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _UbicationZone,
+                        _locationZone,
                         style: const TextStyle(
                           color: VibeColors.navy,
                           fontSize: 14,
@@ -302,7 +293,7 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
                     (all, selected) => setState(() {
                       _allStores = all;
                       _selectedKinds..clear()..addAll(selected);
-                      _fetchProducts(); // Refetch con el nuevo filtro
+                      _fetchProducts();
                     }),
                   ),
                   child: Padding(
@@ -373,7 +364,6 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
                         ),
                       );
                     }
-                    // ListView vertical que recorre las Keys del mapa (Subcategorías)
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -397,7 +387,6 @@ class _MarketExplorerHomeViewState extends State<MarketExplorerHomeView> {
                                 ),
                               ),
                             ),
-                            // ListView horizontal con los productos de esa subcategoría
                             SizedBox(
                               height: 240,
                               child: ListView.separated(

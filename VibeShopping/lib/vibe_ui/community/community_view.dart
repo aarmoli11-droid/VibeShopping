@@ -4,16 +4,12 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibeshopping/vibe_ui/auth/auth_placeholder.dart';
-
 import '../../vibe_core/supabase_config.dart';
 import '../../vibe_core/vibe_constants.dart' as vconstants;
 import '../../vibe_core/vibe_colors.dart' as vcolors;
-import '../../vibe_data/vibe_services/gemini_assistant_service.dart';
 import '../assistant/vibe_ai_assistant.dart';
-
 import 'chat_input.dart';
 import 'chat_list.dart';
 import 'models/community_models.dart';
@@ -42,8 +38,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
     final client = _supabaseClient;
     if (client == null) return Stream.value(const []);
     final cutoffUtc = DateTime.now().toUtc().subtract(
-      vconstants.VibeBusinessRules.forumMessageVisibility,
-    );
+          vconstants.VibeBusinessRules.forumMessageVisibility,
+        );
     final currentUserId = client.auth.currentUser?.id ?? '';
 
     return client
@@ -93,11 +89,12 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
     final client = _supabaseClient;
     if (client == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Configura Supabase para publicar mensajes.')),
+        const SnackBar(
+            content: Text('Configura Supabase para publicar mensajes.')),
       );
       return;
     }
-    
+
     final userId = client.auth.currentUser?.id;
     if (userId == null) return;
 
@@ -140,8 +137,12 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
         title: const Text('Enviar imagen'),
         content: Image.file(File(picked.path)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Enviar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Enviar')),
         ],
       ),
     );
@@ -160,7 +161,7 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
       final random = Random().nextInt(99999).toString().padLeft(5, '0');
       final filePath =
           'community/${DateTime.now().millisecondsSinceEpoch}_$random.$extension';
-      
+
       await client.storage.from(_storageBucket).uploadBinary(
             filePath,
             bytes,
@@ -170,15 +171,16 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
             ),
           );
 
-      final publicUrl = client.storage.from(_storageBucket).getPublicUrl(filePath);
-      
+      final publicUrl =
+          client.storage.from(_storageBucket).getPublicUrl(filePath);
+
       await client.from(_tableName).insert({
         'content': _composerController.text.trim(),
         'image_url': publicUrl,
         'user_id': userId,
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
-      
+
       _composerController.clear();
     } catch (e) {
       print('Error al subir imagen: $e');
@@ -201,7 +203,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
     final supabase = _supabaseClient;
     if (supabase == null) return;
     try {
-      await supabase.from('community_messages').delete().lt('created_at', DateTime.now().subtract(const Duration(hours: 24)).toIso8601String());
+      await supabase.from('community_messages').delete().lt('created_at',
+          DateTime.now().subtract(const Duration(hours: 24)).toIso8601String());
     } catch (e) {
       print('Error al limpiar mensajes antiguos: $e');
     }
@@ -233,7 +236,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFEAF2EC),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: vcolors.VibeColors.mint.withOpacity(0.92)),
+                    border: Border.all(
+                        color: vcolors.VibeColors.mint.withOpacity(0.92)),
                   ),
                   alignment: Alignment.center,
                   child: const Text(
@@ -263,7 +267,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
                 uploadingImage: _uploadingImage,
                 onSendPressed: _sendCurrentTextMessage,
                 onCameraPressed: _pickAndUploadImage,
-                onAssistantPressed: () => VibeAiAssistant.showAssistantSheet(context),
+                onAssistantPressed: () =>
+                    VibeAiAssistant.showAssistantSheet(context),
               ),
             ),
           ],
@@ -292,7 +297,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.1), blurRadius: 10),
                   ],
                 ),
                 child: Column(
@@ -301,7 +307,8 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
                     const Text(
                       "¡Únete a la comunidad! Regístrate para compartir ofertas o guardar tu lista",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -317,7 +324,9 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
                           child: FilledButton(
                             onPressed: () {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (_) => const AuthGatewayLoginView()),
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        const AuthGatewayLoginView()),
                               );
                             },
                             child: const Text("Registrarse"),
@@ -334,74 +343,6 @@ class _VibeCommunityViewState extends State<VibeCommunityView> {
       ],
     );
   }
-}
-
-Future<void> openAssistantSheet(BuildContext context) async {
-  final service = context.read<GeminiShoppingAssistantService>();
-  await showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    backgroundColor: vcolors.VibeColors.backgroundWhite,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (ctx) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Asistente de Compras',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: vcolors.VibeColors.navy,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Gemini está listo para ayudarte a comparar precios y planificar tu canasta (sin compras en la app).',
-              style: TextStyle(
-                color: vcolors.VibeColors.navy.withOpacity(0.75),
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () async {
-                Navigator.of(ctx).pop();
-                if (!context.mounted) return;
-                try {
-                  await service.askShoppingQuestion('Hola');
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Asistente de Compras: conexión respondió correctamente.'),
-                    ),
-                  );
-                } catch (_) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No se pudo contactar al asistente en este momento.'),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.bolt, size: 20),
-              label: const Text('Probar conexión'),
-              style: FilledButton.styleFrom(
-                backgroundColor: vcolors.VibeColors.navy,
-                foregroundColor: vcolors.VibeColors.backgroundWhite,
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }
 
 String fileExtension(String fileName) {

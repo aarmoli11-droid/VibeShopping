@@ -24,7 +24,6 @@ class VibeManualListsView extends StatelessWidget {
               title: Text(groups[index], style: const TextStyle(fontWeight: FontWeight.bold)),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                // Implementar navegación a detalle de grupo
               },
             ),
           );

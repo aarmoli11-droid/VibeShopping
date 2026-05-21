@@ -7,7 +7,6 @@ import 'vibe_constants.dart';
 /// - Secundario / surface tint: menta (acentos, header tipo mockup).
 abstract final class VibeTheme {
   static ThemeData get light {
-    // secondary = verde menta del logo (#A8D5BA) sin atenuar en el esquema base.
     final colorScheme = ColorScheme.light(
       primary: VibeColors.navy,
       onPrimary: VibeColors.backgroundWhite,

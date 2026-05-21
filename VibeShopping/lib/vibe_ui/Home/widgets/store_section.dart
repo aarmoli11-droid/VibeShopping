@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../common_widgets/vibe_product_card.dart';
-import '../product_detail_view.dart';
+import '../views/product_detail_view.dart';
 import '../../../vibe_models/store_kind.dart';
 
 class StoreSection extends StatelessWidget {

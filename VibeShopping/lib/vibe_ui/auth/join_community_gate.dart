@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../Home/market_explorer_view.dart';
+import '../Home/views/market_explorer_view.dart';
 import 'auth_placeholder.dart';
 
 class JoinCommunityGate extends StatelessWidget {

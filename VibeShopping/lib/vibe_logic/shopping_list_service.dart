@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../vibe_ui/Home/product_detail_view.dart';
+import '../vibe_ui/Home/views/product_detail_view.dart';
 import '../vibe_models/store_kind.dart';
 
 class ShoppingListService {
@@ -28,7 +28,6 @@ class ShoppingListService {
 
       final storeName = gridRef.store?.displayName ?? 'Desconocida';
       
-      // Asegurarse de que el precio sea numérico
       final priceString = gridRef.price.replaceAll(RegExp(r'[^\d.]'), '');
       final price = double.tryParse(priceString) ?? 0.0;
 

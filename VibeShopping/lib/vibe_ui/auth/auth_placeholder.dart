@@ -3,7 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 
 import '../../vibe_core/vibe_constants.dart';
-import '../Home/market_explorer_view.dart';
+import '../Home/views/market_explorer_view.dart';
 import '../../vibe_core/session.dart';
 import '../../vibe_core/auth_service.dart';
 import 'auth_forgot_password_view.dart';
@@ -59,7 +59,6 @@ class _AuthGatewayLoginViewState extends State<AuthGatewayLoginView> {
   }
 
   Future<void> _googleSignIn(BuildContext context) async {
-    // Implementación pendiente si es necesario
   }
 
   @override

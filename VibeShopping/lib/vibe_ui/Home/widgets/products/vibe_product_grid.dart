@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../vibe_models/store_kind.dart';
-import '../../../../vibe_ui/Home/product_detail_view.dart';
+import '../../views/product_detail_view.dart';
 import '../../../common_widgets/vibe_product_card.dart';
 
 class VibeProductGrid extends StatelessWidget {

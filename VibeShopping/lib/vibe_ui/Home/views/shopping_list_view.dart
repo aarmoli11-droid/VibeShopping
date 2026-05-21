@@ -42,7 +42,6 @@ class _ShoppingListViewState extends State<ShoppingListView> {
   Map<String, List<Map<String, dynamic>>> _groupItems(List<Map<String, dynamic>> items) {
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (var item in items) {
-      // Ajuste de acceso a datos según el nuevo esquema y join esperado
       final productData = item['products'] ?? {};
       final storeData = productData['supermarkets'] ?? {};
       final store = storeData['name'] ?? 'General';
@@ -185,7 +184,7 @@ class _ShoppingProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final item = product; // Corregido: uso de la variable de clase 'product'
+    final item = product;
     final productData = item['products'] ?? {};
     final String name = productData['name'] ?? 'Producto';
     final priceRaw = productData['price'];

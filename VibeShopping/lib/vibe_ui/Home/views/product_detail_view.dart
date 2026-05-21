@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../vibe_models/store_kind.dart';
-import '../../vibe_core/vibe_formatter.dart';
+import '../../../vibe_models/store_kind.dart';
+import '../../../vibe_core/vibe_formatter.dart';
 
 /// Datos de producto para detalle y comparativa (UI).
 class ProductDetailData {
@@ -29,7 +29,14 @@ class ProductDetailData {
 
   factory ProductDetailData.fromMap(Map<String, dynamic> map) {
     final priceRaw = map['price'];
-    final int price = (priceRaw is num) ? priceRaw.toInt() : 0;
+    int price = 0;
+    if (priceRaw != null) {
+      if (priceRaw is num) {
+        price = priceRaw.toInt();
+      } else {
+        price = double.tryParse(priceRaw.toString())?.toInt() ?? 0;
+      }
+    }
     
     List<String> images = [];
     final rawImages = map['image_urls'] ?? map['image_url'];
@@ -42,11 +49,8 @@ class ProductDetailData {
     VibeStoreKind? store;
     final supermarketData = map['supermarkets'];
     if (supermarketData is Map<String, dynamic>) {
-      // Usar el ID real si existe
-      // final storeId = supermarketData['id']?.toString();
       final name = supermarketData['name']?.toString().toLowerCase() ?? '';
       
-      // Mapeo lógico inicial basado en nombre, pero podemos usar el ID si lo tenemos
       if (name.contains('walmart')) {
         store = VibeStoreKind.walmart;
       } else if (name.contains('pali') || name.contains('palí')) {
@@ -103,9 +107,6 @@ class ProductDetailData {
 
   /// Cadena asociada al precio mostrado en grilla ([gridPriceLabel]).
   VibeStoreKind? get gridPriceStore {
-    // Por ahora, como estamos reconstruyendo, devolvemos null o el primero si tuviéramos lógica de join
-    // pero el requerimiento pide select('*, supermarkets(...)') lo que implica que el producto
-    // pertenece a un supermercado específico.
     return null; 
   }
 }
@@ -165,7 +166,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ZONA DE IMAGEN CON ZOOM (30% altura, padding 48)
             if (imageUrl != null && imageUrl.isNotEmpty)
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.3,
@@ -190,13 +190,11 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             
             const SizedBox(height: 24),
             
-            // ZONA DE INFORMACIÓN
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // A. Título
                   Text(
                     widget.product.name,
                     style: const TextStyle(
@@ -206,7 +204,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                   ),
                   
-                  // B. Precio
                   const SizedBox(height: 12),
                   Text(
                     widget.product.displayPrice,
@@ -217,7 +214,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                   ),
                   
-                  // C. Descripción
                   const SizedBox(height: 12),
                   Text(
                     widget.product.description,
@@ -228,7 +224,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                   ),
                   
-                  // D. Detalles (simulado aquí)
                   const SizedBox(height: 8),
                   Text(
                     "Cantidad estándar disponible",

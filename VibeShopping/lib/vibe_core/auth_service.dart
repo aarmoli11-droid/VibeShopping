@@ -17,14 +17,14 @@ class AuthService {
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     } catch (e) {
-      // Manejar error si es necesario
       rethrow;
     }
   }
 
   Future<AuthResponse> signIn(String email, String password) async {
     try {
-      return await _supabase.auth.signInWithPassword(email: email, password: password);
+      return await _supabase.auth
+          .signInWithPassword(email: email, password: password);
     } catch (e) {
       rethrow;
     }

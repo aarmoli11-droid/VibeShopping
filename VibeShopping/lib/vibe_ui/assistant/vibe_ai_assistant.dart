@@ -85,7 +85,6 @@ class _VibeAiAssistantState extends State<VibeAiAssistant> {
       'created_at': DateTime.now().toIso8601String(),
     };
 
-    // Usando tabla correcta según requerimiento (ej. community_messages)
     await Supabase.instance.client.from('community_messages').insert(message);
     
     setState(() {
