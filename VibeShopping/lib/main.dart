@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'vibe_core/core.dart';
-import 'vibe_data/vibe_services/gemini_assistant_service.dart';
-import 'vibe_ui/auth/join_community_gate.dart';
+import 'core/core.dart';
+import 'data/vibe_services/gemini_assistant_service.dart';
+import 'data/repositories/market_catalog_repository.dart';
+import 'data/repositories/market_catalog_repository_impl.dart';
+import 'ui/auth/join_community_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,9 @@ class VibeShoppingApp extends StatelessWidget {
         ChangeNotifierProvider<VibeSession>.value(value: VibeSession.instance),
         Provider<GeminiShoppingAssistantService>(
           create: (_) => GeminiShoppingAssistantService(),
+        ),
+        Provider<VibeMarketCatalogRepository>(
+          create: (_) => MarketCatalogRepositoryImpl(),
         ),
       ],
       child: AnimatedBuilder(
