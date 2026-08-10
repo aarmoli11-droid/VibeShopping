@@ -1,0 +1,31 @@
+name: vibeshopping
+description: "Prototipo académico: exploración de productos y comparación de precios con Supabase."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.1.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Supabase
+  supabase_flutter: ^2.12.4
+  provider: ^6.1.5+1
+
+  # Local storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Image caching
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  test: ^1.31.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
