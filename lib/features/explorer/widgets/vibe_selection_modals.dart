@@ -4,56 +4,6 @@ import '../../../core/vibe_constants.dart';
 import '../domain/store_model.dart';
 
 class VibeSelectionModals {
-  static void openLocationPicker(BuildContext context, String currentZone,
-      Function(String) onZoneChanged) {
-    const zones = ['San Isidro'];
-
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: VibeColors.backgroundWhite,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
-                child: Text(
-                  'Tu ubicación',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: VibeColors.navy,
-                  ),
-                ),
-              ),
-              ...zones.map(
-                (zone) => ListTile(
-                  title: Text(zone,
-                      style: const TextStyle(color: VibeColors.navy)),
-                  trailing: zone == currentZone
-                      ? const Icon(Icons.check,
-                          color: VibeColors.navy, size: 20)
-                      : null,
-                  onTap: () {
-                    onZoneChanged(zone);
-                    Navigator.pop(ctx);
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   static void openStorePicker(
       BuildContext context,
       bool allStores,

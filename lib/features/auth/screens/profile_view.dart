@@ -62,27 +62,6 @@ class ProfileView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            const Divider(height: 1),
-            _MenuTile(
-              icon: Icons.edit_outlined,
-              label: 'Editar Perfil',
-              onTap: () {},
-            ),
-            _MenuTile(
-              icon: Icons.location_on_outlined,
-              label: 'Direcciones',
-              onTap: () {},
-            ),
-            _MenuTile(
-              icon: Icons.diamond_outlined,
-              label: 'Pásate a Premium',
-              onTap: () {},
-            ),
-            _MenuTile(
-              icon: Icons.payment_outlined,
-              label: 'Métodos de Pago',
-              onTap: () {},
-            ),
             const Spacer(),
             if (user != null)
               Padding(
@@ -115,28 +94,6 @@ class ProfileView extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _MenuTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _MenuTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: VibeColors.navy),
-      title: Text(label, style: const TextStyle(color: VibeColors.navy)),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-      onTap: onTap,
     );
   }
 }

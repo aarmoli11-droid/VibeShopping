@@ -1,20 +1,9 @@
-// ======================================================
-// Archivo: core/vibe_theme.dart
-// Responsabilidad: Definir el tema visual de la app
-// Qué hace: Configura Material 3 con la paleta de colores
-//   de VibeShopping (navy + mint) y estilos para todos
-//   los componentes
-// Cuándo se utiliza: En main.dart → MaterialApp(theme: ...)
-// Quién lo utiliza: main.dart
-// ======================================================
+// Tema Material 3 de la app con la paleta de la marca.
 
 import 'package:flutter/material.dart';
 import 'vibe_constants.dart';
 
 abstract final class VibeTheme {
-  // Crea el tema claro con los colores de la marca.
-  // Usa Material 3 (useMaterial3: true) que es el
-  // sistema de diseño más reciente de Flutter
   static ThemeData get light {
     final colorScheme = ColorScheme.light(
       primary: VibeColors.navy,
@@ -31,8 +20,6 @@ abstract final class VibeTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: VibeColors.backgroundMint,
-
-      // AppBar con fondo menta y texto navy
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
@@ -45,8 +32,6 @@ abstract final class VibeTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-
-      // NavigationBar (bottom nav) con indicador menta
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: VibeColors.backgroundWhite,
         indicatorColor: VibeColors.mint.withValues(alpha: 0.45),
@@ -69,14 +54,10 @@ abstract final class VibeTheme {
           );
         }),
       ),
-
-      // FAB con fondo menta
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: VibeColors.mint,
         foregroundColor: VibeColors.navy,
       ),
-
-      // Botones elevados (navy + blanco)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: VibeColors.navy,
@@ -88,8 +69,6 @@ abstract final class VibeTheme {
           ),
         ),
       ),
-
-      // Botones outline (borde menta)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: VibeColors.navy,
@@ -100,8 +79,6 @@ abstract final class VibeTheme {
           ),
         ),
       ),
-
-      // Campos de texto con fondo blanco y borde menta
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: VibeColors.backgroundWhite,
@@ -118,8 +95,6 @@ abstract final class VibeTheme {
           borderSide: const BorderSide(color: VibeColors.mint, width: 1.75),
         ),
       ),
-
-      // Chips (categorías) con borde menta
       chipTheme: ChipThemeData(
         backgroundColor: VibeColors.backgroundWhite,
         selectedColor: VibeColors.mint.withValues(alpha: 0.38),
@@ -132,8 +107,6 @@ abstract final class VibeTheme {
           side: const BorderSide(color: VibeColors.mint, width: 1.2),
         ),
       ),
-
-      // Texto general en navy
       textTheme: const TextTheme(
         headlineMedium: TextStyle(
           color: VibeColors.navy,
@@ -147,15 +120,6 @@ abstract final class VibeTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-    );
-  }
-
-  // Gradiente menta → blanco para fondos de pantalla
-  static LinearGradient get screenBackgroundGradient {
-    return const LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [VibeColors.backgroundMint, VibeColors.backgroundWhite],
     );
   }
 }

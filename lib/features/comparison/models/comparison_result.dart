@@ -1,5 +1,6 @@
 import 'store_price.dart';
 
+// Resultado de comparar precios de un producto entre tiendas.
 class ComparisonResult {
   final String masterProductId;
   final String productName;
@@ -11,42 +12,24 @@ class ComparisonResult {
     required this.stores,
   });
 
+  // Mejor precio si hay al menos dos tiendas comparables.
   StorePrice? get bestPrice {
     if (stores.length < 2) return null;
     return stores.reduce((a, b) => a.price < b.price ? a : b);
   }
-
-  double savingsFor(String storeId) {
-    final store = stores.where((s) => s.storeId == storeId).firstOrNull;
-    final best = bestPrice;
-    if (store == null || best == null) return 0;
-    final diff = store.price - best.price;
-    return diff > 0 ? diff : 0;
-  }
-
-  double savingsPercentFor(String storeId) {
-    final store = stores.where((s) => s.storeId == storeId).firstOrNull;
-    final best = bestPrice;
-    if (store == null || best == null || store.price == 0) return 0;
-    return ((store.price - best.price) / store.price) * 100;
-  }
-
-  List<String> get requiredStores =>
-      stores.map((s) => s.storeId).toSet().toList();
 }
 
+// Resumen de la mejor opción para mostrar en la tarjeta del producto.
 class ComparisonPreview {
   final String bestStoreName;
   final String? bestStoreLogoUrl;
   final double bestPrice;
   final double savings;
-  final int storeCount;
 
   const ComparisonPreview({
     required this.bestStoreName,
     this.bestStoreLogoUrl,
     required this.bestPrice,
     required this.savings,
-    required this.storeCount,
   });
 }

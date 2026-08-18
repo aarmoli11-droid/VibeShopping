@@ -1,48 +1,14 @@
-// ======================================================
-// Archivo: features/auth/screens/login_view.dart
-// Responsabilidad: Pantalla de inicio de sesión
-// Qué hace: Muestra un formulario con email y
-//   contraseña, valida los datos, llama al
-//   AuthProvider y redirige al explorador
-// Quién lo utiliza: JoinCommunityGate (cuando el
-//   usuario no ha iniciado sesión)
-//
-// Flujo dentro de la aplicación:
-//   1. Usuario llena email y contraseña
-//   2. Toca "Iniciar sesión"
-//   3. Se validan los campos localmente
-//   4. AuthProvider.signIn() llama a Supabase
-//   5. Si ok: navega al ExplorerShell
-//   6. Si error: muestra SnackBar con el mensaje
-//
-// Conceptos utilizados:
-//   - StatefulWidget: widget con estado mutable.
-//     Usamos StatefulWidget porque necesitamos
-//     TextEditingController y el estado del
-//     toggle de visibilidad de contraseña
-//   - BuildContext: referencia a la posición del
-//     widget en el árbol. Se usa para acceder a
-//     providers, navegar, mostrar SnackBars, etc.
-//   - mounted: propiedad que indica si el widget
-//     sigue en el árbol. Después de un await, el
-//     widget pudo haberse destruido (ej: el usuario
-//     navegó a otra pantalla). Siempre revisar
-//     mounted antes de tocar el contexto
-//   - Navigator: sistema de navegación de Flutter.
-//     push() agrega una ruta, pushReplacement()
-//     reemplaza la actual
-// ======================================================
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:vibeshopping/core/vibe_constants.dart';
 import 'package:vibeshopping/features/auth/helpers/auth_styles.dart';
+import 'package:vibeshopping/features/auth/widgets/auth_wave_header.dart';
 import 'package:vibeshopping/features/explorer/screens/explorer_shell.dart';
 import '../providers/auth_provider.dart';
 import 'forgot_password_view.dart';
 import 'register_view.dart';
 
+// Pantalla de inicio de sesión: formulario + validación + navegación.
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -50,32 +16,13 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-// ======================================================
-// Clase: _LoginViewState
-// Representa: El estado mutable de LoginView
-// Cuándo se crea: Cuando Flutter build el widget
-// Problema que resuelve: Gestiona los controladores
-//   de texto y el toggle de visibilidad de contraseña
-// ======================================================
 class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-  // ======================================================
-  // Método: _submit
-  // Recibe: nada (lee los controladores)
-  // Devuelve: Future<void>
-  // Cuándo se ejecuta: Usuario toca "Iniciar sesión"
-  // Quién lo llama: El botón FilledButton.onPressed
-  //
-  // Paso 1. Validar que el usuario ingresó datos
-  // Paso 2. Llamar al provider para autenticar
-  // Paso 3. Revisar si hubo error
-  // Paso 4. Si ok, navegar al explorador
-  // ======================================================
+  // Valida y envía credenciales; en caso de éxito navega al explorador.
   Future<void> _submit() async {
-    // Paso 1: Validar campos localmente
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -91,16 +38,9 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
-    // Paso 2: Enviar credenciales a Supabase a través
-    // del provider. El provider pone isLoading=true
-    // y la UI muestra un spinner en el botón
     await context.read<AuthProvider>().signIn(email, password);
 
-    // Paso 3: Revisar si hubo error después del login.
-    // Usamos context.read() (no watch) porque solo
-    // queremos leer el estado una vez, no suscribirnos
     final auth = context.read<AuthProvider>();
-
     if (auth.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -109,9 +49,6 @@ class _LoginViewState extends State<LoginView> {
         ),
       );
     } else if (auth.isLoggedIn && mounted) {
-      // Paso 4: Navegar al explorador reemplazando
-      // la ruta actual (no puede volver al login
-      // con el botón "atrás")
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ExplorerShell()),
@@ -128,9 +65,6 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    // MediaQuery.paddingOf(context).bottom = espacio
-    // que ocupan los elementos del sistema (barra de
-    // navegación en Android, home indicator en iOS)
     final systemBottomPadding = MediaQuery.paddingOf(context).bottom;
     final auth = context.watch<AuthProvider>();
 
@@ -139,10 +73,9 @@ class _LoginViewState extends State<LoginView> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header decorativo con logo y onda
           const AuthWaveHeader(
             title: '¡Hola de nuevo!',
-            subtitle: 'Completa tus datos o continúa con Google',
+            subtitle: 'Completa tus datos para continuar',
             illustrationVariant: 0,
           ),
           Expanded(
@@ -228,34 +161,6 @@ class _LoginViewState extends State<LoginView> {
                               fontSize: 15,
                             ),
                           ),
-                  ),
-                  const SizedBox(height: 14),
-                  OutlinedButton.icon(
-                    onPressed: null,
-                    icon: const FaIcon(
-                      FontAwesomeIcons.google,
-                      size: 18,
-                      color: VibeColors.navy,
-                    ),
-                    label: const Text(
-                      'Iniciar sesión con Google',
-                      style: TextStyle(
-                        color: VibeColors.navy,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(
-                        color: AuthMintBorder.color,
-                        width: AuthMintBorder.widthNormal,
-                      ),
-                      backgroundColor: VibeColors.backgroundWhite,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 22),
                   Wrap(

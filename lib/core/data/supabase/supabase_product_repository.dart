@@ -1,17 +1,18 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../repositories/product_repository.dart';
 import '../../../features/products/models/product.dart';
+import '../../../features/explorer/domain/store_model.dart';
+import '../../../features/explorer/domain/store_location.dart';
 
-class SupabaseProductRepository implements ProductRepository {
-  final SupabaseClient _supabase;
-
+// Acceso a los productos desde la vista de Supabase.
+class SupabaseProductRepository {
   SupabaseProductRepository({required SupabaseClient supabase})
       : _supabase = supabase;
 
-  @override
+  final SupabaseClient _supabase;
+
+  // Consulta los productos aplicando los filtros opcionales.
   Future<List<ProductEntity>> listProducts({
     List<String>? categoryIds,
-    String? storeId,
     String? search,
     List<String>? storeIds,
   }) async {
@@ -33,10 +34,6 @@ class SupabaseProductRepository implements ProductRepository {
           : query.inFilter('supermarket_id', storeIds);
     }
 
-    if (storeId != null) {
-      query = query.eq('supermarket_id', storeId);
-    }
-
     final response = await query;
     final rows = response as List<dynamic>;
     return rows
@@ -44,15 +41,28 @@ class SupabaseProductRepository implements ProductRepository {
         .toList();
   }
 
-  @override
-  Future<ProductEntity?> getProduct(String id) async {
+  // Supermercados con coordenadas reales para distancias del asistente.
+  Future<List<StoreModel>> listSupermarkets() async {
     final response = await _supabase
-        .from('v_products_complete')
-        .select('*')
-        .eq('product_id', id)
-        .single();
-    final data = response as Map<String, dynamic>?;
-    if (data == null || data.isEmpty) return null;
-    return ProductEntity.fromViewMap(data);
+        .from('supermarkets')
+        .select('id,name,logo_url,latitude,longitude,address');
+    return (response as List<dynamic>).map((e) {
+      final map = e as Map<String, dynamic>;
+      final lat = (map['latitude'] as num?)?.toDouble();
+      final lng = (map['longitude'] as num?)?.toDouble();
+      return StoreModel(
+        id: map['id']?.toString() ?? '',
+        name: map['name'] as String? ?? '',
+        logoUrl: map['logo_url'] as String?,
+        locations: (lat != null && lng != null)
+            ? [
+                StoreLocation(
+                    latitude: lat,
+                    longitude: lng,
+                    address: map['address'] as String?),
+              ]
+            : const [],
+      );
+    }).toList();
   }
 }

@@ -1,16 +1,4 @@
-// ======================================================
-// Archivo: features/explorer/widgets/vibe_brand_logo.dart
-// Responsabilidad: Logo de la aplicación VibeShopping
-// Qué hace: Muestra el logo como imagen. Si no encuentra
-//   el asset principal, intenta un fallback. Si ambos
-//   fallan, muestra un icono de carrito
-// Quién lo utiliza: MarketExplorerView (en el AppBar)
-//
-// Concepto: errorBuilder
-//   Callback de Image.asset que se ejecuta si la imagen
-//   no se encuentra. Permite encadenar fallbacks hasta
-//   un icono por defecto
-// ======================================================
+// Logo de la app con fallback a icono de carrito.
 
 import 'package:flutter/material.dart';
 import '../../../core/vibe_constants.dart';

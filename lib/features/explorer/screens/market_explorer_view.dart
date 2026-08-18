@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../core/vibe_constants.dart';
 import '../../products/widgets/vibe_product_card.dart';
 import '../../products/screens/product_detail_view.dart';
-import '../../assistant/screens/vibe_ai_assistant.dart';
 import '../providers/explorer_provider.dart';
+import '../../shopping_assistant/shopping_assistant_screen.dart';
 import '../widgets/vibe_brand_logo.dart';
 import '../widgets/vibe_search_bar.dart';
 import '../widgets/vibe_category_bar.dart';
@@ -25,7 +25,6 @@ class MarketExplorerView extends StatefulWidget {
 class _MarketExplorerViewState extends State<MarketExplorerView> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
-  String _locationZone = 'San Isidro';
 
   @override
   void initState() {
@@ -80,35 +79,22 @@ class _MarketExplorerViewState extends State<MarketExplorerView> {
             elevation: 0,
             centerTitle: true,
             leading: const SizedBox.shrink(),
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const VibeBrandLogo(),
-                GestureDetector(
-                  onTap: () => VibeSelectionModals.openLocationPicker(
+            actions: [
+              IconButton(
+                tooltip: 'Asistente de compras',
+                onPressed: () {
+                  Navigator.push(
                     context,
-                    _locationZone,
-                    (zone) => setState(() => _locationZone = zone),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _locationZone,
-                        style: const TextStyle(
-                          color: VibeColors.navy,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const Icon(Icons.keyboard_arrow_down_rounded,
-                          size: 16, color: VibeColors.navy),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                    MaterialPageRoute(
+                      builder: (_) => const ShoppingAssistantScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.tips_and_updates_rounded,
+                    color: VibeColors.navy),
+              ),
+            ],
+            title: const VibeBrandLogo(),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(80),
               child: Padding(
@@ -150,7 +136,7 @@ class _MarketExplorerViewState extends State<MarketExplorerView> {
           ),
         ],
       ),
-      floatingActionButton: VibeAiAssistant.buildFloatingButton(context),
+      floatingActionButton: null,
     );
   }
 

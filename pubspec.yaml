@@ -1,5 +1,5 @@
 name: vibeshopping
-description: "A new Flutter project."
+description: "Prototipo académico: exploración de productos y comparación de precios con Supabase."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,35 +9,27 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # ICONOS
-  font_awesome_flutter: ^10.7.0
 
   # Supabase
   supabase_flutter: ^2.12.4
   provider: ^6.1.5+1
-  image_picker: ^1.2.2
-
-  # API Client
-  dio: ^5.7.0
 
   # Local storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
-  # Maps & navigation
-  flutter_map: ^7.0.2
-  latlong2: ^0.9.1
-  geolocator: ^13.0.2
-
   # Image caching
   cached_network_image: ^3.4.1
 
+  # Mapa real (flutter_map + tiles de OpenStreetMap)
+  flutter_map: ^8.3.1
+  latlong2: ^0.10.1
+
 dev_dependencies:
+  test: ^1.31.1
 
 flutter:
   uses-material-design: true
 
-  
   assets:
     - assets/icons/
- 

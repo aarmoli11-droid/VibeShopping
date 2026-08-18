@@ -1,14 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/category_model.dart';
-import '../../domain/repositories/category_repository.dart';
 
-class SupabaseCategoryRepository implements CategoryRepository {
+// Acceso a las categorías desde la tabla de Supabase.
+class SupabaseCategoryRepository {
   SupabaseCategoryRepository({required SupabaseClient supabase})
       : _supabase = supabase;
 
   final SupabaseClient _supabase;
 
-  @override
+  // Devuelve las categorías activas ordenadas para la barra.
   Future<List<CategoryModel>> getCategories() async {
     final response = await _supabase
         .from('categories')

@@ -4,7 +4,6 @@ import '../providers/manual_list_provider.dart';
 import '../models/manual_list_entity.dart';
 import '../widgets/detail/detail_header.dart';
 import '../widgets/detail/item_card.dart';
-import '../widgets/detail/coming_soon_banner.dart';
 import '../widgets/detail/detail_empty_items.dart';
 import '../widgets/common/confirm_action_dialog.dart';
 import '../widgets/common/edit_text_dialog.dart';
@@ -124,13 +123,6 @@ class _ManualListDetailViewState extends State<ManualListDetailView> {
               slivers: [
                 DetailHeader(
                     list: list, avgPrice: avgPrice, storeCount: storeCount),
-                if (items.isNotEmpty)
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    sliver: SliverToBoxAdapter(
-                      child: const ComingSoonBanner(),
-                    ),
-                  ),
                 if (items.isEmpty)
                   SliverFillRemaining(child: const DetailEmptyItems())
                 else

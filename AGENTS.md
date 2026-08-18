@@ -1,353 +1,257 @@
-# Local Dev Setup
+# VibeShopping — Prototipo Académico (MVP)
+
+Flutter + Supabase directo. **No hay backend Node.js** (eliminado en el cambio de alcance). Todos los datos se leen con el SDK de Supabase desde la vista `v_products_complete`.
+
+## Estado del alcance
+
+- **Dart**: 79 archivos, ~7,993 líneas totales (~7,834 código) — dentro del objetivo académico 6,000–8,000.
+- **Backend / SQL**: 0 (el backend Node.ts y las migraciones `server/` fueron eliminados; los datos siguen en Supabase).
+- **Dependencias pubspec**: `supabase_flutter`, `provider`, `hive`, `hive_flutter`, `cached_network_image`, `flutter_map`, `latlong2`, `test`.
 
 ## Prerequisites
-- Flutter 3.22+ (uses `--dart-define-from-file`)
-- Node.js 20+
-- pnpm
-- Supabase project (local or cloud)
+- Flutter 3.22+ (usa `--dart-define-from-file`)
+- Supabase project (local o cloud) con `supermarkets` y `v_products_complete` pobladas
 
 ## Quick Start (from zero)
 
 ```powershell
-# 1. Clone
 git clone <repo>
 cd VibeShopping
 
-# 2. Create Flutter config from template
+# 1. Crear configuración Flutter desde plantilla
 copy .env.example .env
 
-# 3. Edit .env with your Supabase credentials
+# 2. Editar .env con credenciales de Supabase
 notepad .env
 
-# 4. Run the app
+# 3. Ejecutar la app
 .\run.ps1
 ```
 
-**That's it.** No IDE setup, no global env vars, no hidden steps.
+Sin IDE, sin variables de entorno globales, sin pasos ocultos.
 
----
+## Configuración
 
-## Configuration System
-
-### Architecture
-
-```
-Project Root/
-├── .env                 # Flutter dart-define values (gitignored)
-├── .env.example         # Template (committed)
-├── run.ps1              # PowerShell wrapper
-├── run.bat              # cmd.exe wrapper
-└── server/
-    ├── .env             # Server env vars (gitignored by root .gitignore)
-    └── .env.example     # Server template (committed)
-```
-
-### How it works
-
-Flutter 3.22+ supports `--dart-define-from-file=<file>`, which reads a `.json` or `.env` file and passes every key-value pair as a `--dart-define`.
-
-The same file works for all commands:
+Solo se necesita el par `SUPABASE_URL` + `SUPABASE_ANON_KEY`. Los flags `USE_NODE_API` / `API_BASE_URL` fueron eliminados junto con el backend.
 
 ```bash
 flutter run --dart-define-from-file=.env
 flutter build apk --dart-define-from-file=.env
-flutter build appbundle --dart-define-from-file=.env
 ```
 
-No need for manual `--dart-define=KEY=VAL` flags. No dependency on IDE-run configurations.
-
-### dart-define flags
-
-| Variable | Required | Default | Read by | Purpose |
-|---|---|---|---|---|
-| `SUPABASE_URL` | Always | — | `supabase_config.dart:18` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Always | — | `supabase_config.dart:20` | Supabase anonymous key |
-| `USE_NODE_API` | Optional | `false` | `api_config.dart:20` | Use Node.js backend |
-| `API_BASE_URL` | Conditional | `http://localhost:3001` | `api_config.dart:41` | Node.js API base URL |
-
-Each variable has exactly **one point of reading** in the code.
-
-### Required vs Optional
-
-Add to `.env`:
-```
-# Required (always)
-SUPABASE_URL=https://...
-SUPABASE_ANON_KEY=eyJ...
-
-# Optional — uncomment when needed
-# USE_NODE_API=true
-# API_BASE_URL=http://localhost:3001
-```
-
----
-
-## Running the App
-
-### PowerShell (recommended)
-
-```powershell
-.\run.ps1                    # default device
-.\run.ps1 -Device emulator-5554
-```
-
-### cmd.exe
-
-```cmd
-run.bat
-```
-
-### VS Code (F5)
-
-Press `F5` — the `.vscode/launch.json` already passes `--dart-define-from-file=.env`. No global env vars needed.
-
-### Android Studio
-
-Open `Run → Edit Configurations`, select `main.dart`. The `additionalArgs` field already contains `--dart-define-from-file=.env`.
-
-### Direct terminal
-
-```bash
-flutter run --dart-define-from-file=.env
-```
-
----
-
-## Switching Between Supabase Direct vs Node.js Backend
-
-The app can run in two modes:
-
-| Mode | `.env` setting | Data path |
-|---|---|---|
-| **Supabase direct** (default) | (no `USE_NODE_API`) | Flutter → Supabase SDK |
-| **Node.js backend** | `USE_NODE_API=true` | Flutter → Node.js API → Supabase |
-
-To switch:
-
-```powershell
-# Supabase direct (just SUPABASE_URL + SUPABASE_ANON_KEY)
-.\run.ps1
-
-# Node.js backend (add USE_NODE_API=true + API_BASE_URL to .env)
-notepad .env
-.\run.ps1
-```
-
-The AI assistant always uses the Node.js backend via `POST /api/v1/assistant/ask`. The Supabase Edge Function path was removed in Phase D.4.
-
----
-
-## Adding a New Environment Variable
-
-1. Add the key to `.env.example` with a placeholder value and documentation comment.
-2. Read it in code via `String.fromEnvironment('KEY')`, `bool.fromEnvironment('KEY')`, or `int.fromEnvironment('KEY')`.
-3. Update the dart-define flags table above.
-4. Ensure `.env` remains gitignored.
-
----
-
-## Server
-
-```bash
-# One-time setup
-cd server
-copy .env.example .env
-notepad .env                  # fill SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GEMINI_API_KEY
-
-# Run
-pnpm install
-pnpm dev
-```
-
-### Server env vars
-
-| Variable | Required | Read by | Purpose |
+| Variable | Requerida | Leída por | Propósito |
 |---|---|---|---|
-| `PORT` | No (3001) | `env.ts:13` → Zod | Fastify port |
-| `SUPABASE_URL` | Yes | `env.ts:14` → Zod | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | `env.ts:15` → Zod | Service role (admin) |
-| `GEMINI_API_KEY` | Yes | `env.ts:16` → Zod | Gemini AI API key |
-| `LOG_LEVEL` | No (info) | `env.ts:17` → Zod | Pino log level |
-| `NODE_ENV` | No (development) | `env.ts:18` → Zod | Environment mode |
+| `SUPABASE_URL` | Siempre | `supabase_config.dart:22` | URL del proyecto Supabase |
+| `SUPABASE_ANON_KEY` | Siempre | `supabase_config.dart:24` | Clave anónima |
 
-### Dead variables
+Cada variable tiene exactamente **un punto de lectura** en el código.
 
-- `SUPABASE_JWT_SECRET` — present in `server/.env` but **zero consumers** in code. Listed in LEGACY.md.
+## Funcionalidades (alcance final)
 
-> ⚠️ **Note**: `GEMINI_API_KEY` is also read raw via `process.env.GEMINI_API_KEY` in `gemini.service.ts:12` and `routes/index.ts:42`, bypassing Zod validation in `env.ts`. This is a code quality finding but not a security risk since the file is gitignored.
+| Feature | Estado | Líneas |
+|---|---|---|
+| `explorer/` | Conservada — pantalla principal, búsqueda y filtros | 1,220 |
+| `products/` | Conservada — productos, precios y detalle | 634 |
+| `comparison/` | Conservada — comparación de precios entre tiendas | 466 |
+| `auth/` | Conservada — login/registro/perfil | 1,029 |
+| `categories/` | Conservada — filtro por categorías | 168 |
+| `manual_lists/` | **Congelada** — funciona, NO modificar | 2,703 |
+| `location_demo/` | NUEVA — mapa real de San Isidro con flutter_map | 750 |
+| `shopping_assistant/` | NUEVA — recomendación precio+distancia+transporte | 520 |
 
----
+**Regla**: no invertir tiempo en `manual_lists` (congelado). No migrar, no conectar al asistente, no simplificar.
 
-## Phase 5 — AI Assistant Backend Migration (Complete)
+### Features eliminadas (definitivamente)
 
-The AI assistant now uses **only** the Node.js backend (`POST /api/v1/assistant/ask`). The Supabase Edge Function `asistente-compras` is no longer called by Flutter and should be deleted from the Supabase Dashboard.
+| Feature | Por qué se eliminó |
+|---|---|
+| `assistant/` (IA/chat) | IA fuera de alcance; reemplazada por `shopping_assistant` |
+| `shopping_planner/` | 4,695 líneas muertas/inaccesibles; fuera de alcance |
+| `navigation/` (OSRM/FlutterMap/GPS) | Complejidad fuera de alcance |
+| `location/` (FlutterMap) | Reemplazada por `location_demo` |
+| `server/` (Node/TS) + migraciones | Backend fuera de alcance; Supabase directo basta |
+| `test/features/shopping_planner/` | Pruebas del motor eliminado |
 
-### Current Data Flow
+### Navegación (4 tabs, `explorer_shell.dart`)
 
 ```
-User types question
-    ↓
-vibe_ai_assistant.dart
-    ↓ context.read<ProductRepository>()
-ProductRepository.listProducts(storeIds: _allStoreIds)
-    ↓ returns List<ProductEntity>
-Build structured text context (name + store prices)
-    ↓
-AssistantService.askQuestion() → _apiClient.post('/api/v1/assistant/ask')
-    ↓
-Node.js backend → authMiddleware → Zod validation → GeminiService
-    ↓
-Gemini API
+ExplorerShell
+├── Tab 1: Explorar → MarketExplorerView  (botón asistente en AppBar)
+├── Tab 2: Mis Listas → ManualListsView   (congelado)
+├── Tab 3: Ubicación → LocationDemoScreen (mapa real flutter_map)
+└── Tab 4: Perfil → ProfileView
 ```
 
-### Server endpoint
-- `POST /api/v1/assistant/ask` — receives `{ question, context? }`, validates with Zod, rate-limited (20/min), calls Gemini, returns `{ success, data: { response } }`.
-- Auth: JWT middleware (same as other routes).
-- Logging: Pino (request.log).
+## Flujo del Asistente de Compras (`shopping_assistant/`)
 
-## Progress
+```
+Usuario escribe producto + elige transporte
+    ↓
+ShoppingAssistantScreen → context.read<ProductProvider>() + ExplorerProvider()
+    ↓
+ShoppingAssistantLogic.buildRecommendation()
+    ↓
+matchProduct(query) → candidatos (precio por tienda)
+distanceToStore(store) → Haversine local (coordenadas reales) + tiempo por transporte
+    ↓
+score = pesoPrecio * (másBarato/precio) + pesoDistancia * (másCerca/distancia)
+    ↓
+Recomendación ordenada + ahorro estimado
+```
 
-### Done
-- **Manual Lists Provider refactor**: Converted `part of` files to 4 mixins (`ManualListCrudMixin`, `ManualListSearchSortMixin`, `ManualListStatisticsMixin`, `ManualListComparisonMixin`). Enums `ListSortMode`/`ListFilterMode` moved to `manual_list_entity.dart`. Provider uses `with Mixin1, Mixin2, ...` — no `part` directives. Protected accessors for internal state.
-- **Widget extraction**: Both views rewritten to use public widgets. `manual_lists_view.dart` 890→212 lines. `manual_list_detail_view.dart` 927→226 lines. Extracted widgets: `ListHeader`, `ListSearchSortBar`, `ListFilterChips`, `ListCard`, `ListNoSearchResults`, `ListEmptyState`, `DetailHeader`, `ItemCard`, `ComingSoonBanner`, `DetailEmptyItems`, `StatChip`, `ConfirmActionDialog`, `EditTextDialog`.
-- **Price Comparator (MVP)**: Created `StorePriceComparison` widget showing prices across stores for a product, highlighting cheapest. Integrated into `ProductDetailView` via `ComparisonProvider.compareProduct()`.
-- **Phase B.3 — Navigation data model**: `StoreModel` extended with `double? latitude/longitude`, `copyWith`, `==`/`hashCode`, `toString`. `SupabaseExplorerRepository` documented for future coordinates. Navigation module remains decoupled. No UI changes.
-- **Phase B.5 — Supermarkets extended**: Migration `20260709_extend_supermarkets.sql` adds `latitude`, `longitude`, `address`, `parking`, `delivery`, `pickup` to `supermarkets`. Coordinates populated at district level (GAM). `ProductPrice`/`StorePrice` untouched — coordinates live exclusively in `StoreModel`.
-- **Phase D.4 — Edge Function removed**: Flutter no longer calls `asistente-compras` Edge Function. `AssistantService` uses only Node.js backend (`POST /api/v1/assistant/ask`). `useNodeAssistant` flag removed from `ApiConfig`. `SupabaseClient` dependency removed from `AssistantService`. Delete `asistente-compras` from Supabase Dashboard.
-- **flutter analyze lib/**: 0 issues. **npx tsc --noEmit**: 0 errors.
+Pesos por transporte: carro 0.6/0.4, bus 0.5/0.5, bici 0.4/0.6, a pie 0.3/0.7. La recomendación también muestra el tiempo de traslado estimado (carro 30, bus 20, bici 15, a pie 5 km/h). Sin IA, sin backend, sin GPS: la posición del usuario es ficticia (centro de San Isidro).
 
-## Code Deletion Rules (Permanent)
+## Flujo de la Ubicación Demo (`location_demo/`)
 
-Before deleting any file, class, method, variable, helper, widget, provider, DTO, Entity, service, repository, or constant:
+Mapa real de San Isidro de El General con `flutter_map` (tiles de OpenStreetMap, sin API key) y 3 supermercados con coordenadas reales de OSM: BM Bostón (El Prado), CoopeAgri San Luis (Barrio San Luis) y Maxi Palí (Barrio Sinaí). La posición del usuario es una referencia fija del centro de San Isidro (9.3760, -83.7025), etiquetada "Tu ubicación". Cada tienda es un marcador con su nombre sobre el mapa; pan y zoom con gestos + botones `+`/`−`. Al tocar un marcador (o la tarjeta) se abre un BottomSheet con dirección, distancia Haversine y tiempos auto (40 km/h), moto (35), bici (15) y a pie (5), marcados como estimaciones de referencia del prototipo. Sin GPS, sin rutas, sin OSRM.
 
-1. **Find all consumers** of the element.
-2. **Confirm zero references** — direct or indirect.
-3. **Verify no usage via**: Provider, DI, reflection, routes, navigation, dynamic imports, extensions, barrel exports.
-4. **Run `flutter analyze`** and **`npx tsc --noEmit`** before deleting.
-5. **If unsure, DO NOT delete.** Mark `LEGACY` with a comment explaining why instead.
-6. **Delete only when**: zero active references, no indirect deps, no functional impact, compilation OK, analysis clean.
+## Reporte: Mapa real de Ubicación (flutter_map + OpenStreetMap)
 
-For every deletion, document in the report:
-- What was deleted and why
-- What replaces it
-- How safety was verified
+- **Flutter**: 3.41.1 stable · **Dart**: 3.11.0 stable (2026-02).
+- **Paquete de mapa**: `flutter_map ^8.3.1` + `latlong2 ^0.10.1` (requiere Dart ≥3.6 — cumplido). Reemplaza a `maplibre_gl ^0.26.2`. Sin cambio de SDK.
+- **Proveedor de tiles**: OpenStreetMap. **URL**: `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. **API key**: no requiere. **User-Agent**: `com.example.vibeshopping` (`TileLayer.userAgentPackageName`). Atribución visible en el mapa ("© OpenStreetMap contributors").
+- **Android**: compatible (permiso INTERNET ya declarado en el manifest). iOS: requiere configuración adicional (no aplica).
+- **Supermercados** (coordenadas reales vía Nominatim/OSM):
+  - BM Bostón: 9.3808282, -83.7061450 (Alameda Venegas, El Prado)
+  - CoopeAgri San Luis: 9.3857375, -83.7065238 (Calle 14, Barrio San Luis)
+  - Maxi Palí: 9.3675409, -83.6964465 (Vía 242, Barrio Sinaí)
+- **Usuario (referencia)**: 9.3760, -83.7025 — Carretera Interamericana Sur, El Prado, San Isidro.
+- **Distancias/tiempos** (Haversine + velocidades): BM 0.67 km → 1/1/3/8 min; CoopeAgri SL 1.17 km → 2/2/5/14; Maxi Palí 1.15 km → 2/2/5/14 (auto/moto/bici/a pie). Tiempos coherentes por medio (auto ≤ moto ≤ bici ≤ a pie).
+- **Interacción**: pan y zoom con gestos (sin rotación) + botones `+`/`−` en la esquina superior derecha del mapa. Tap en un marcador o en una tarjeta abre un `showModalBottomSheet` con los datos del supermercado (nombre, dirección, distancia, tiempos por medio, nota de estimación y botón Cerrar).
+- **Archivos**: los 6 de `location_demo/`; `explorer_shell.dart` sin cambios.
+- **Total del proyecto**: 79 archivos lib, 7,993 líneas; código real ~7,993 (lib 7,834 + test 159) — dentro de 6,000–8,000.
 
-## Directory Structure Conventions (Phase 8C)
+## Estructura de directorios
 
-### Feature module layout
+### Features conservadas (estructura existente intacta)
+
 ```
 lib/features/<name>/
-  domain/entities/
-  domain/repositories/       (abstract)
-  data/dto/
-  data/repositories/         (implementations)
-  presentation/providers/
-  presentation/helpers/      (pure presentation logic, no widgets)
-  presentation/screens/      (feature-owned screens)
-  presentation/widgets/      (feature-owned widgets only)
+  screens/  providers/  services/  models/  domain/  widgets/  data/
 ```
 
-### Shared widgets (used by multiple features)
+### Features nuevas (layout plano y sencillo)
+
 ```
-lib/ui/common_widgets/       (VibeProductCard, VibeImageSlider)
+lib/features/location_demo/
+  location_demo_screen.dart        (178 — pantalla con mapa flutter_map)
+  location_demo_data.dart          (87 — tiles OSM + coordenadas + Haversine + tiempos)
+  location_demo_store.dart         (15 — modelo DemoStore)
+  location_demo_widgets.dart       (142 — tarjeta StoreCard)
+  location_demo_details_sheet.dart (181 — BottomSheet de detalle)
+  location_demo_map_widgets.dart   (147 — marcadores + botones de zoom)
+
+lib/features/shopping_assistant/
+  shopping_assistant_screen.dart  (~250)
+  shopping_assistant_logic.dart   (~160)  — lógica pura, sin UI
+  shopping_assistant_data.dart    (~50)   — posición + distancias
 ```
 
-### Feature-specific screens & widgets go inside the feature, not in ui/
-- `lib/features/explorer/presentation/screens/` — 4 screens (market_explorer, product_detail, shopping_list, vibe_manual_lists)
-- `lib/features/explorer/presentation/widgets/` — 6 widgets (vibe_side_drawer, vibe_search_bar, etc.)
-- Screens import feature widgets via `../widgets/`, shared widgets via `../../../../ui/common_widgets/`
+No crear repository/datasource/DTO/mapper/useCase/provider si no hace falta.
 
-### Cross-feature imports (allowed)
-- Explorer → Products: `product.entity.dart`, `product_provider.dart`, `product_display_helper.dart`
-- Explorer → ShoppingList: `shopping_list_entity.dart`, `shopping_list_provider.dart`
+### Cross-feature imports (actuales)
+- Explorer → Products: `product.dart`, `product_provider.dart`
+- Explorer → ShoppingAssistant: `shopping_assistant_screen.dart`
+- Explorer → LocationDemo: `location_demo_screen.dart`
 - Explorer → Auth: `auth_provider.dart`, `login_view.dart`
-- Explorer → Assistant: `vibe_ai_assistant.dart` (via `ui/assistant/`)
-- Products → Comparison: `comparison_provider.dart` (ProductDetailView → StorePriceComparison)
-- Products → ShoppingList: `shopping_list_provider.dart` (VibeProductCard)
-- No feature imports from `features/explorer/` (Explorer is a consumer, not a provider)
+- Products → Comparison: `comparison_provider.dart`
+- ManualLists → Products: `product_provider.dart`
+- ShoppingAssistant → Products, Explorer, LocationDemo (Haversine)
 
 ### Single source of truth
-- `lib/core/constants/store_ids.dart` (StoreIds) — all store UUIDs
-- `lib/core/vibe_constants.dart` (VibeColors) — palette: navy `#2C3E50`, mint `#A8D5BA`, backgroundMint, backgroundWhite
-- `lib/core/parse_image_urls.dart` (parseImageUrls) — shared image URL parsing (normaliza image_url → List<String>)
-- `lib/core/network/api_client.dart` (ApiClient.unwrapData) — shared API response unwrapping
-- `lib/features/products/presentation/helpers/product_display_helper.dart` — price resolution, image parsing
+- `lib/core/vibe_constants.dart` (VibeColors) — navy `#2C3E50`, mint `#A8D5BA`, backgroundMint, backgroundWhite
+- `lib/core/vibe_theme.dart` (VibeTheme) — Material 3
+- `lib/core/vibe_formatter.dart` (VibeFormatter.formatPrice) — precios ₡
+- `lib/core/supabase_config.dart` — credenciales Supabase
+- `lib/features/products/models/product.dart` — ProductEntity/ProductPrice
 
-### Dependency Injection (Phase 4.3 — Final freeze)
-- Providers are registered centrally in `lib/core/di/app_providers.dart`
-- `AppProviders.providers` exposes a `List<dynamic>` that gets spread into `MultiProvider`
-- `main.dart` only bootstraps the app (init Supabase, Hive, ApiClient) and delegates DI to `AppProviders`
-- Adding a new feature = add provider to `app_providers.dart` + add screen to existing navigation
-- No Service Locator, no GetIt, no reflection
+### Inyección de dependencias
+- Providers registrados centralmente en `lib/core/di/app_providers.dart` (solo Auth, Products, Categories, Explorer, Comparison, ManualList)
+- `main.dart` solo inicializa Supabase + Hive y delega el DI a `AppProviders`
+- Sin Service Locator, sin GetIt, sin reflexión
 
-### Dead code removed (Phase 8C consolidation / Phase 11 / Phase 4.3)
-- `lib/core/auth_service.dart` — LEGACY, replaced by AuthProvider
-- `lib/core/core.dart` — unused barrel file
-- `lib/logic/` — entire directory (BasketProductEntity, ListBasketProductsUsecase)
-- `lib/data/vibe_community_chat/community_chat_message_query.dart`
-- `lib/ui/auth/auth_register_view.dart` / `auth_forgot_password_view.dart` — typedef wrappers
-- No empty directories remain (`lib/data/repositories/` deleted)
-- `flutter_test` (dev dep) — removed in Phase 11 (no test files exist)
-- `flutter_lints` (dev dep) — removed in Phase 11 (not referenced in analysis_options.yaml)
-- `vitest` (server dev dep) — removed in Phase 11 (no test files exist)
-- `lib/core/repositories/comparison_repository.dart` — removed in Phase 4.3 (never implemented, no consumers)
-- `lib/core/repositories/manual_list_repository.dart` — removed in Phase 4.3 (never implemented, no consumers)
-- `lib/core/repositories/community_repository.dart` — removed in Phase 4.3 (never implemented, no consumers)
+## Líneas
 
-### Phase B.3 — Navigation data model prepared
-- **`StoreModel`** (`lib/features/explorer/domain/store_model.dart`): added `double? latitude`, `double? longitude`, `copyWith()`, `==`/`hashCode`, `toString()`. `fromJson()` parses `latitude`/`longitude` via `(json['latitude'] as num?)?.toDouble()` — null-safe even if columns don't exist yet in Supabase.
-- **`SupabaseExplorerRepository`** (`lib/features/explorer/data/supabase_explorer_repository.dart`): added FUTURE comment documenting that when `supermarkets` gains `latitude`/`longitude` columns, `StoreModel.fromJson` will read them automatically. References the migration file where this was planned.
-- **`FakeNavigationRepository`**: unchanged — uses internal simulated coordinates (`NavigationLocation`, `StoreRoute` only). Does NOT inject fake coords into `StoreModel`. Module is fully decoupled.
-- **Visual integration** (Navigate button in `StorePriceComparison` → `NavigationBottomSheet`): **pending** — requires real coordinates from Supabase or a fallback lookup. No UI changes in this phase.
-- **Verification**: `flutter analyze lib/`: 0 issues. `npx tsc --noEmit`: 0 errors.
+| Módulo | Líneas |
+|---|---|
+| manual_lists (congelado) | 2,703 |
+| auth | 1,029 |
+| explorer | 1,220 |
+| products | 634 |
+| shopping_assistant (nuevo) | 520 |
+| comparison | 466 |
+| location_demo (nuevo) | 750 |
+| core | 310 |
+| categories | 168 |
+| main | 34 |
+| **Total** | **~7,993** |
 
-### Community feature removed (Phase 12)
-- **Entire `lib/features/community/` directory** — 10 files (screens, widgets, providers, services, repositories, entities) were permanently deleted.
-- **Server routes**: `server/src/routes/community.ts` deleted; `communityMessages` health check replaced with `v_products_complete`.
-- **Why**: Community chat was a global chat feature with its own CRUD APIs, Supabase table (`community_messages`), and Node.js routes. It's being redesigned.
-- **Intended replacement**: A per-product comment system associated with `product_master`, not a global chat. No timeline set — in roadmap for future release.
-- **Navigation tab**: The "Comunidad" NavigationBar destination is preserved for structure; its body renders a simple "Próximamente" placeholder with no providers, services, repositories, or Supabase calls.
-- **Verification**: `flutter analyze lib/`: 0 issues. `npx tsc --noEmit`: 0 errors. All community references (imports, DI registrations, server routes) eliminated.
+Código real: ~7,834 en lib + 159 en test = ~7,993, dentro del rango 6,000–8,000. En la fase de limpieza se eliminaron capas de arquitectura innecesarias (interfaces `*Repository`, services passthrough `*Service`), código muerto y ~875 líneas de comentarios de bloque, y se retiró `font_awesome_flutter` (botones Google muertos).
 
-### Phase D.2 — Explorer loading stabilization
+## Verificación
 
-- **`ExplorerProvider`**: Added `_initialized` guard. New `initialize()` method replaces the `initState` cascade — runs stores + products load once per session. `refresh()` is the sole public route for re-fetching. `_allCachedProducts` holds the full product list in memory for the session lifetime.
-- **Local filtering**: `setCategory()`, `setStoreFilter()`, `setSearchQuery()` never call Supabase. All filtering operates on `_allCachedProducts` via `groupedProducts` getter. Category IDs resolved with private `_categoryIdsFor()` helper.
-- **Flow**:
-  ```
-  MarketExplorerView.initState()
-    ↓
-  ExplorerProvider.initialize()
-    ↓ (once per session — _initialized guard)
-  ┌─ ExplorerService.getStores()  ──→ Supabase (supermarkets)
-  └─ ProductProvider.loadProducts() ──→ Supabase (v_products_complete)
-    ↓
-  _allCachedProducts = full product list
-    ↓
-  setCategory / setStoreFilter / setSearchQuery
-    ↓ (local only, no Supabase)
-  groupedProducts getter → applyFilters() → notifyListeners()
-  ```
-- **Rebuilds**: initial load ~2 (was ~5), category/store/search change = 1 (was 3).
-- **Queries to Supabase**: 2 total per session (was 2 every tab switch + n per filter change).
-
-### Phase B.5 — Supermarkets extended for navigation
-- **Migration created**: `server/supabase/migrations/20260709_extend_supermarkets.sql`
-- **Columns added**: `latitude DOUBLE PRECISION`, `longitude DOUBLE PRECISION`, `address TEXT`, `parking BOOLEAN DEFAULT FALSE`, `delivery BOOLEAN DEFAULT FALSE`, `pickup BOOLEAN DEFAULT FALSE`
-- **Data populated**: Approximate coordinates (OpenStreetMap, San Isidro de El General, Pérez Zeledón) for Buen Día (cerca Maxi Palí), Más Súper (cerca CoopeAgri), Súper Ahorro (cerca Walmart), Super Vida Saludable (Sector Plaza Monte General). `address` uses friendly reference descriptions. `parking` = TRUE for Súper Ahorro and Super Vida Saludable (evidencia pública de parqueo en Walmart y Plaza Monte General).
-- **Architecture**: Coordinates belong exclusively to `StoreModel` (Explorer domain). `ProductPrice` and `StorePrice` remain unchanged — no coordinate duplication. Navigation consumes coordinates via `StoreModel` using `storeId`, never via product price models.
-- **Verification**: `flutter analyze lib/`: 0 issues. `npx tsc --noEmit`: 0 errors.
-
-### Verification
-
-Before committing changes:
 ```bash
-# Flutter analysis (can be slow on first run)
 flutter analyze lib/
-
-# Server type-check
-cd server && npx tsc --noEmit
-
-# Server tests
-cd server && pnpm test
+flutter test test/features/shopping_assistant/
 ```
+
+Sin `npx tsc` ni `pnpm test` (el backend fue eliminado). Los tests del asistente usan `package:test` (lógica pura, sin widgets).
+
+## Código eliminado (referencia)
+
+- `lib/core/api_client.dart`, `lib/core/api_config.dart` — solo servían al backend eliminado
+- `ProductEntity.fromApiMap()` — factory de la API Node.js sin consumidores
+- Registros muertos en `app_providers.dart` (shopping_planner, navigation, assistant)
+- Directorios `lib/features/{assistant,shopping_planner,navigation,location}/`, `server/`, `test/`
+- Fase de limpieza 2026-08: `core/repositories/` (interfaz `ProductRepository`), `products/services/product_service.dart`, `categories/services/category_service.dart`, `categories/domain/repositories/category_repository.dart` (interfaz duplicada), `auth/screens/join_community_gate.dart` → `auth_gate.dart` (`AuthGate`), y en `manual_lists/` (solo código muerto aprobado): `models/route_preparation.dart`, `models/price_comparison_info.dart`, `models/manual_list_summary.dart`, `services/manual_list_serializer.dart`, `services/manual_list_statistics_service.dart`, `providers/parts/manual_list_{comparison,statistics}.dart`, `widgets/detail/coming_soon_banner.dart`.
+
+## Reglas de borrado (permanentes)
+
+Antes de borrar cualquier elemento:
+1. Buscar todos los consumidores.
+2. Confirmar cero referencias directas e indirectas (Provider, DI, rutas, imports, exports).
+3. Ejecutar `flutter analyze` antes y después.
+4. Si hay duda, NO borrar; marcar `LEGACY` con comentario explicativo.
+5. Documentar en el reporte qué se borró, qué lo reemplaza y cómo se verificó la seguridad.
+
+## Historial de progreso
+
+### Migración del mapa a flutter_map 2026-08 (flutter_map + OpenStreetMap)
+- **Reemplazado**: el mapa de `maplibre_gl ^0.26.2` (tiles de OpenFreeMap) por `flutter_map ^8.3.1` + `latlong2 ^0.10.1` con tiles de OpenStreetMap (`https://tile.openstreetmap.org/{z}/{x}/{y}.png`, sin API key). User-Agent `com.example.vibeshopping` y atribución visible.
+- **Creado**: `location_demo_map_widgets.dart` (marcadores `StoreMarker`/`UserMarker` y controles de zoom `+`/`−`). Tap en marcador o tarjeta → BottomSheet; pan/zoom con gestos (sin rotación).
+- **Ajustado**: velocidades coherentes auto 40 / moto 35 / bici 15 / a pie 5 km/h; etiquetas Auto/Moto/Bici/A pie; nota "tiempos estimados de referencia del prototipo" en tarjeta y BottomSheet; botón Cerrar. Se eliminó `mapStyleUrl` (OpenFreeMap).
+- **Verificación**: `flutter analyze lib/`: 0 issues. `flutter test`: 7/7 pass.
+- **Métricas**: 78 → 79 archivos lib; 7,637 → 7,993 líneas totales (6,960 → 7,834 código lib); feature `location_demo` 553 → 750 líneas.
+
+### Mapa real de Ubicación 2026-08 (MapLibre + OpenFreeMap)
+- **Creado**: `location_demo_widgets.dart` (StoreCard) y `location_demo_details_sheet.dart` (BottomSheet).
+- **Reemplazado**: el mapa simulado (CustomPainter) por un mapa real con `maplibre_gl ^0.26.2` y tiles de OpenFreeMap (sin API key). Marcadores de texto con el nombre de cada tienda + "Tu ubicación".
+- **Datos reales**: 3 supermercados con coordenadas verificadas en OSM (BM Bostón, CoopeAgri San Luis, Maxi Palí); distancia Haversine y tiempos a pie/bici/moto/carro calculados, no escritos a mano.
+- **Verificación**: `flutter analyze lib/`: 0 issues. `flutter test`: 7/7 pass.
+- **Métricas**: 76 → 78 archivos lib; 7,541 → 7,637 líneas totales; 6,867 → 6,960 código lib; test 121 → 159.
+
+### Fase de limpieza final 2026-08 (código, alcance e incoherencias)
+- **Eliminado** (sin consumidores): `lib/core/repositories/product_repository.dart` + carpeta `core/repositories/`, `products/services/product_service.dart`, `categories/services/category_service.dart`, `categories/domain/repositories/category_repository.dart`, `auth/screens/join_community_gate.dart` (→ `auth_gate.dart`), y en `manual_lists/`: `route_preparation.dart`, `price_comparison_info.dart`, `manual_list_summary.dart`, `manual_list_serializer.dart`, `manual_list_statistics_service.dart`, `providers/parts/manual_list_{comparison,statistics}.dart`, `widgets/detail/coming_soon_banner.dart`.
+- **Eliminado de providers/modelos**: `ProductProvider.loadProductDetail/selectedProduct/error`, `ComparisonProvider.compareProducts/compareStore/invalidateCache/buildPriceComparisonInfo`, `ExplorerProvider.refresh()`, `CategoryProvider.refresh()`, `AuthProvider.authService` setter + `clearError`, `SupabaseAuthService.refreshSession/isAuthenticated`, `CategoryService`, campos muertos `priceComparison`/`routePreparation` y servicios del `ManualListProvider`, `VibeTheme.screenBackgroundGradient`, `AuthGatewayStyles.buildLogoHero`, `VibeSelectionModals.openLocationPicker`, `ProductDisplayHelper.resolveGridPrice/GridPriceRef/referenceStoreName`, `ComparisonPreview.storeCount`, `ProductEntity.referenceStoreName/fromSupabaseMap`, `StoreModel.fromJson/copyWith/==`.
+- **Eliminado de UI (incoherencias)**: botones Google deshabilitados en login/registro (y `font_awesome_flutter` de pubspec), tiles no-op del perfil, `ComingSoonBanner` ("Próximamente"), banner "Comunidad" en `explorer_shell.dart`, picker de zona en `market_explorer_view.dart`.
+- **Ajustado al alcance**: `location_demo` ahora muestra tiempos a pie/bici/moto/carro; el asistente muestra tiempo de traslado y ya no usa distancias de respaldo por nombre (solo Haversine real).
+- **Simplificado**: repositorios Supabase concretos sin interfaces, inyección directa en providers (`app_providers.dart`), helpers de display limpios, ~875 líneas de comentarios de bloque → comentarios cortos.
+- **Verificación**: `flutter analyze`: 0 issues. `flutter test`: 7/7 pass.
+- **Métricas**: lib 88 → 76 archivos; 9,649 → 7,541 líneas totales; 7,972 → 6,867 código; 993 → 118 comentarios. Código real ~6,988 (dentro de 6,000–8,000).
+
+### Cambio de alcance a Prototipo Académico
+- **Eliminado**: `lib/features/assistant/` (8 archivos), `lib/features/shopping_planner/` (62), `lib/features/navigation/` (18), `lib/features/location/` (6), `test/` (3), `server/` completo (Node/TS + migraciones SQL), `lib/core/api_client.dart`, `lib/core/api_config.dart`.
+- **Creado**: `location_demo/` (3 archivos, 470 líneas — mapa estático de San Isidro con CustomPainter + Haversine) y `shopping_assistant/` (3 archivos, 552 líneas — recomendación precio/distancia/transporte sin IA).
+- **Modificado**: `app_providers.dart` (242→97 líneas), `main.dart` (sin ApiClient), `explorer_shell.dart` (tab Ubicación → LocationDemoScreen), `market_explorer_view.dart` (botón Asistente en AppBar), `pubspec.yaml` (−dio, −flutter_map, −latlong2, −geolocator, −url_launcher, −image_picker), `product.dart` (eliminado `fromApiMap`).
+- **Verificación**: `flutter analyze lib/`: 0 issues. `flutter analyze` (completo): 0 issues.
+- **Métricas**: 20,705 → 9,649 líneas totales; 233 → 88 archivos Dart; backend 1,828 → 0; SQL 1,672 → 0.
+
+### Historial previo (resumen)
+- Manual Lists refactor a 4 mixins; widgets extraídos (`manual_lists_view.dart` 890→212).
+- Price Comparator MVP integrado en `ProductDetailView`.
+- `StoreModel` con coordenadas (latitude/longitude) — usadas por el asistente para distancia real.
+- Migración `20260709_extend_supermarkets.sql` (coordenadas de San Isidro) — los datos ya están en Supabase.
+- Phase D.4: Edge Function `asistente-compras` eliminada de Flutter (borrar del Dashboard si existe).
+- Estabilización: dead code removal, file splits, DI centralizado, `docs/ARCHITECTURE.md`.
+- Community feature removida (Phase 12) — tab "Comunidad" es placeholder; el tab se conserva.
+- Explorer loading stabilizado (Phase D.2) — 2 queries Supabase por sesión, filtrado local.

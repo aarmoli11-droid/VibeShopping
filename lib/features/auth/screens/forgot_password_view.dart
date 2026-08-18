@@ -1,32 +1,10 @@
-// ======================================================
-// Archivo: features/auth/screens/forgot_password_view.dart
-// Responsabilidad: Pantalla de recuperación de
-//   contraseña
-// Qué hacer: Pide el correo del usuario y solicita
-//   a Supabase que envíe un enlace para restablecer
-//   la contraseña
-// Quién lo utiliza: LoginView (navegación cuando el
-//   usuario toca "¿Olvidaste tu contraseña?")
-//
-// Flujo dentro de la aplicación:
-//   1. Usuario ingresa su correo
-//   2. Toca "Restablecer contraseña"
-//   3. Se valida el correo localmente
-//   4. AuthProvider.resetPassword() llama a Supabase
-//   5. Supabase envía un email con un enlace mágico
-//   6. Se muestra un SnackBar confirmando el envío
-//
-// Conceptos utilizados:
-//   - resetPasswordForEmail: método de Supabase Auth
-//     que envía un correo con un enlace para cambiar
-//     la contraseña. No requiere que el usuario esté
-//     autenticado
-// ======================================================
+// Pantalla de recuperación de contraseña.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vibeshopping/core/vibe_constants.dart';
 import 'package:vibeshopping/features/auth/helpers/auth_styles.dart';
+import 'package:vibeshopping/features/auth/widgets/auth_wave_header.dart';
 import '../providers/auth_provider.dart';
 
 class ForgotPasswordView extends StatefulWidget {
@@ -39,24 +17,10 @@ class ForgotPasswordView extends StatefulWidget {
 class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   final _emailController = TextEditingController();
 
-  // ======================================================
-  // Método: _submit
-  // Recibe: nada (lee el controlador de email)
-  // Devuelve: Future<void>
-  // Cuándo se ejecuta: Usuario toca "Restablecer"
-  // Quién lo llama: El botón FilledButton.onPressed
-  //
-  // Paso 1. Validar el email
-  // Paso 2. Solicitar restablecimiento a Supabase
-  // Paso 3. Mostrar confirmación o error
-  // ======================================================
+  // Valida el correo y solicita el restablecimiento a Supabase.
   Future<void> _submit() async {
     final email = _emailController.text.trim();
 
-    // Paso 1: Validar que el email tenga formato válido
-    // Usamos un password dummy porque esta función
-    // valida ambos campos, pero aquí solo validamos
-    // el email
     final validationError =
         AuthGatewayStyles.validateEmailPassword(email, 'dummy');
     if (validationError != null) {
@@ -69,10 +33,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
       return;
     }
 
-    // Paso 2: Enviar solicitud de restablecimiento
     await context.read<AuthProvider>().resetPassword(email);
 
-    // Paso 3: Revisar el resultado
     final auth = context.read<AuthProvider>();
     if (auth.error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

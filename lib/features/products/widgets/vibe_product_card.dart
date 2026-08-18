@@ -21,7 +21,7 @@ class VibeProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gridRef = ProductDisplayHelper.resolveGridPrice(data);
+    final priceLabel = ProductDisplayHelper.displayPrice(data);
     final urls = ProductDisplayHelper.validImageUrls(data);
     final storeData = ProductDisplayHelper.supermarketData(data);
 
@@ -59,7 +59,7 @@ class VibeProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${gridRef.price}',
+                    priceLabel,
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,
@@ -84,7 +84,7 @@ class VibeProductCard extends StatelessWidget {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(4),
                               child: CachedNetworkImage(
-                                imageUrl: storeData['logo_url'],
+                                imageUrl: storeData['logo_url']!,
                                 width: 16,
                                 height: 16,
                                 fit: BoxFit.cover,
@@ -121,13 +121,10 @@ class VibeProductCard extends StatelessWidget {
               right: 8,
               child: GestureDetector(
                 onTap: () {
-                  final storeName =
-                      (storeData?['name'] as String?) ?? 'Desconocida';
+                  final storeName = storeData?['name'] ?? 'Desconocida';
                   final storeId =
                       data.prices.isNotEmpty ? data.prices.first.storeId : '';
-                  final priceString =
-                      gridRef.price.replaceAll(RegExp(r'[^\d]'), '');
-                  final price = (double.tryParse(priceString) ?? 0.0);
+                  final price = data.referencePrice;
 
                   final itemProduct = ManualListItemEntity(
                     productId: data.id,

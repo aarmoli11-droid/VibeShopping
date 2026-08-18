@@ -1,20 +1,4 @@
-// ======================================================
-// Archivo: features/explorer/widgets/vibe_search_bar.dart
-// Responsabilidad: Barra de búsqueda de productos
-// Qué hace: Renderiza un TextField con icono de lupa y
-//   borde verde menta. El controller se conecta al state
-//   de MarketExplorerView para filtrar en tiempo real
-// Quién lo utiliza: MarketExplorerView (dentro del
-//   SliverAppBar)
-//
-// Concepto: TextEditingController
-//   Objeto que controla el contenido de un TextField.
-//   Se pasa desde el padre para que el padre pueda leer
-//   el texto (filtrar productos) o modificarlo (limpiar
-//   después de enviar). El padre se suscribe a cambios
-//   con addListener(() => setState(...)) para actualizar
-//   la UI en cada tecla
-// ======================================================
+// Barra de búsqueda de productos (el padre controla el texto).
 
 import 'package:flutter/material.dart';
 import '../../../core/vibe_constants.dart';

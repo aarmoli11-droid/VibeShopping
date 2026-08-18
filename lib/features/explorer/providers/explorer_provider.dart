@@ -1,40 +1,40 @@
 import 'package:flutter/foundation.dart';
 import '../services/explorer_service.dart';
 import '../domain/store_model.dart';
+import '../domain/store_location.dart';
 import '../../categories/domain/category_model.dart';
 import '../../categories/providers/category_provider.dart';
 import '../../products/models/product.dart';
 import '../../products/providers/product_provider.dart';
+import '../../../core/data/supabase/supabase_product_repository.dart';
 
+// Estado del explorador: filtros y productos derivados de los providers.
 class ExplorerProvider extends ChangeNotifier {
   ExplorerProvider({
     required ExplorerService service,
     required ProductProvider productProvider,
     required CategoryProvider categoryProvider,
+    required SupabaseProductRepository repository,
   })  : _service = service,
         _productProvider = productProvider,
-        _categoryProvider = categoryProvider;
+        _categoryProvider = categoryProvider,
+        _repository = repository;
 
   final ExplorerService _service;
   final ProductProvider _productProvider;
   final CategoryProvider _categoryProvider;
+  final SupabaseProductRepository _repository;
 
-  // ——— Initialization guard ———
   bool _initialized = false;
-
-  // ——— Stores (derived from product prices) ———
   List<StoreModel> _stores = [];
-
-  // ——— Full cached product list (loaded once per session) ———
   List<ProductEntity> _allCachedProducts = [];
 
-  // ——— Filter state ———
+  // Estado de filtros.
   bool _allStores = true;
   final Set<String> _selectedStoreIds = {};
   String _categoryId = 'todo';
   String _searchQuery = '';
 
-  // ——— Getters ———
   bool get allStores => _allStores;
   Set<String> get selectedStoreIds => _selectedStoreIds;
   String get categoryId => _categoryId;
@@ -44,22 +44,19 @@ class ExplorerProvider extends ChangeNotifier {
 
   List<ProductEntity> get products => _productProvider.products;
   bool get productsLoading => _productProvider.isLoading;
-
   List<CategoryModel> get categories => _categoryProvider.categories;
 
-  // ——— Local filtering (never calls Supabase) ———
+  // Productos filtrados por categoría, tienda y búsqueda (sin Supabase).
   Map<String, List<ProductEntity>> get groupedProducts {
     if (!_initialized) return {};
 
     var filtered = _allCachedProducts;
 
-    // Apply category filter locally
     if (_categoryId != 'todo') {
       final catIds = _categoryIdsFor(_categoryId);
       filtered = filtered.where((p) => catIds.contains(p.categoryId)).toList();
     }
 
-    // Apply store filter locally
     if (!_allStores) {
       if (_selectedStoreIds.isEmpty) return {};
       filtered = filtered
@@ -68,7 +65,6 @@ class ExplorerProvider extends ChangeNotifier {
           .toList();
     }
 
-    // Apply search + group
     return _service.filterAndGroupProducts(filtered, _searchQuery);
   }
 
@@ -82,35 +78,48 @@ class ExplorerProvider extends ChangeNotifier {
     return _selectedStoreIds.toList();
   }
 
-  // ——— Initialization (runs once per session) ———
+  // Carga productos y categorías una vez por sesión.
   Future<void> initialize() async {
     if (_initialized) return;
 
-    // Kick off dependent loaders
     await Future.wait([
       _productProvider.loadProducts(),
       _categoryProvider.initialize(),
     ]);
 
     _allCachedProducts = List<ProductEntity>.from(_productProvider.products);
-    _deriveStores();
+    _deriveStores(await _loadStoreLocations());
     _initialized = true;
     notifyListeners();
   }
 
-  // ——— Local category filter (no Supabase call) ———
+  // Coordenadas reales de supermercados (tabla `supermarkets`).
+  Future<Map<String, StoreLocation>> _loadStoreLocations() async {
+    final locations = <String, StoreLocation>{};
+    try {
+      for (final store in await _repository.listSupermarkets()) {
+        final lat = store.latitude;
+        final lng = store.longitude;
+        if (lat == null || lng == null) continue;
+        locations[store.id] = StoreLocation(latitude: lat, longitude: lng);
+      }
+    } catch (_) {
+      // Sin coordenadas la distancia simplemente no aplica.
+    }
+    return locations;
+  }
+
+  // Filtros locales (no llaman a Supabase).
   void setCategory(String id) {
     _categoryId = id;
     notifyListeners();
   }
 
-  // ——— Local search filter (no Supabase call) ———
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
   }
 
-  // ——— Local store filter (no Supabase call) ———
   void setStoreFilter(bool allStores, Set<String> selectedIds) {
     _allStores = allStores;
     _selectedStoreIds
@@ -119,34 +128,30 @@ class ExplorerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ——— Full reload (clears cache and re-queries Supabase) ———
-  Future<void> refresh() async {
-    _initialized = false;
-    _allCachedProducts = [];
-    _stores = [];
-    await initialize();
-  }
-
-  // ——— Derive stores from cached product prices ———
-  void _deriveStores() {
+  // Deriva la lista de tiendas desde los precios del catálogo y las coordenadas reales.
+  void _deriveStores(Map<String, StoreLocation> locations) {
     final seen = <String>{};
     _stores = [];
     for (final product in _allCachedProducts) {
       for (final price in product.prices) {
         if (seen.add(price.storeId)) {
+          final location = locations[price.storeId] ??
+              ((price.latitude != null && price.longitude != null)
+                  ? StoreLocation(
+                      latitude: price.latitude!, longitude: price.longitude!)
+                  : null);
           _stores.add(StoreModel(
             id: price.storeId,
             name: price.storeName,
             logoUrl: price.logoUrl,
-            latitude: price.latitude,
-            longitude: price.longitude,
+            locations: location == null ? const [] : [location],
           ));
         }
       }
     }
   }
 
-  // ——— Helpers ———
+  // IDs de la base para una categoría de la barra.
   Set<String> _categoryIdsFor(String categoryId) {
     final cat = _categoryProvider.categories
         .where((c) => c.id == categoryId)

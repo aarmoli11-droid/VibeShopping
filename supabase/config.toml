@@ -1,0 +1,5 @@
+# Configuración de Supabase (funciones Edge).
+project_id = "vibeshopping"
+
+[functions.gemini-chat]
+verify_jwt = true

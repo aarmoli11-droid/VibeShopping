@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'price_comparison_info.dart';
-import 'route_preparation.dart';
 
 enum ManualListStatus { active, completed, archived }
 
@@ -17,7 +15,6 @@ class ManualListItemEntity {
   int quantity;
   final double unitPriceSnapshot;
   double get currentPrice => unitPriceSnapshot;
-  PriceComparisonInfo? priceComparison;
   final DateTime addedAt;
 
   ManualListItemEntity({
@@ -43,19 +40,11 @@ class ManualListItemEntity {
         'quantity': quantity,
         'unitPriceSnapshot': unitPriceSnapshot,
         'addedAt': addedAt.toIso8601String(),
-        if (priceComparison != null)
-          'priceComparison': {
-            'currentPrice': priceComparison!.currentPrice,
-            'recommendedPrice': priceComparison!.recommendedPrice,
-            'bestStoreId': priceComparison!.bestStoreId,
-            'bestStoreName': priceComparison!.bestStoreName,
-            'estimatedSavings': priceComparison!.estimatedSavings,
-          },
       };
 
   factory ManualListItemEntity.fromJson(Map<String, dynamic> json) {
     final addedAtRaw = json['addedAt'];
-    final item = ManualListItemEntity(
+    return ManualListItemEntity(
       id: json['id'] as String? ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       productId: json['productId'] as String,
@@ -71,17 +60,6 @@ class ManualListItemEntity {
           ? DateTime.parse(addedAtRaw as String)
           : DateTime.now(),
     );
-    final pc = json['priceComparison'] as Map<String, dynamic>?;
-    if (pc != null) {
-      item.priceComparison = PriceComparisonInfo(
-        currentPrice: (pc['currentPrice'] as num?)?.toDouble(),
-        recommendedPrice: (pc['recommendedPrice'] as num?)?.toDouble(),
-        bestStoreId: pc['bestStoreId'] as String?,
-        bestStoreName: pc['bestStoreName'] as String?,
-        estimatedSavings: (pc['estimatedSavings'] as num?)?.toDouble(),
-      );
-    }
-    return item;
   }
 }
 
@@ -95,7 +73,6 @@ class ManualListEntity {
   DateTime updatedAt;
   int colorValue;
   int iconCodePoint;
-  RoutePreparation? routePreparation;
   int totalItems;
   int totalQuantity;
   double estimatedTotal;
@@ -136,24 +113,11 @@ class ManualListEntity {
         'totalItems': totalItems,
         'totalQuantity': totalQuantity,
         'estimatedTotal': estimatedTotal,
-        if (routePreparation != null)
-          'routePreparation': {
-            'storeIds': routePreparation!.storeIds,
-            'storeCoordinates': routePreparation!.storeCoordinates.map(
-              (k, v) => MapEntry(k, {
-                'latitude': v.latitude,
-                'longitude': v.longitude,
-              }),
-            ),
-            'estimatedDistance': routePreparation!.estimatedDistance,
-            'estimatedTravelTime': routePreparation!.estimatedTravelTime,
-            'bestVisitOrder': routePreparation!.bestVisitOrder,
-          },
       };
 
   factory ManualListEntity.fromJson(Map<String, dynamic> json) {
     final statusStr = json['status'] as String?;
-    final list = ManualListEntity(
+    return ManualListEntity(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
@@ -176,28 +140,6 @@ class ManualListEntity {
       totalQuantity: json['totalQuantity'] as int? ?? 0,
       estimatedTotal: (json['estimatedTotal'] as num?)?.toDouble() ?? 0.0,
     );
-    final rp = json['routePreparation'] as Map<String, dynamic>?;
-    if (rp != null) {
-      final coordsRaw = rp['storeCoordinates'] as Map<String, dynamic>?;
-      list.routePreparation = RoutePreparation(
-        storeIds: (rp['storeIds'] as List<dynamic>?)?.cast<String>() ?? [],
-        storeCoordinates: coordsRaw?.map(
-              (k, v) => MapEntry(
-                k,
-                StoreCoordinate(
-                  latitude: (v['latitude'] as num).toDouble(),
-                  longitude: (v['longitude'] as num).toDouble(),
-                ),
-              ),
-            ) ??
-            {},
-        estimatedDistance: (rp['estimatedDistance'] as num?)?.toDouble(),
-        estimatedTravelTime: (rp['estimatedTravelTime'] as num?)?.toDouble(),
-        bestVisitOrder:
-            (rp['bestVisitOrder'] as List<dynamic>?)?.cast<String>() ?? [],
-      );
-    }
-    return list;
   }
 
   static String generateId() =>

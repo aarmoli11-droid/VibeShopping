@@ -1,29 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../products/models/product.dart';
 import '../../products/providers/product_provider.dart';
 import '../models/manual_list_entity.dart';
-import '../services/manual_list_statistics_service.dart';
-import '../services/manual_list_serializer.dart';
 import 'parts/manual_list_crud.dart';
 import 'parts/manual_list_search_sort.dart';
-import 'parts/manual_list_statistics.dart';
-import 'parts/manual_list_comparison.dart';
 
 class ManualListProvider extends ChangeNotifier
-    with
-        ManualListCrudMixin,
-        ManualListSearchSortMixin,
-        ManualListStatisticsMixin,
-        ManualListComparisonMixin {
+    with ManualListCrudMixin, ManualListSearchSortMixin {
   static const _boxName = 'manual_lists';
   static const _key = 'lists';
 
   final ProductProvider? productProvider;
-  final ManualListStatisticsService _statisticsService =
-      ManualListStatisticsService();
-  final ManualListSerializer _serializer = ManualListSerializer();
 
   List<ManualListEntity> _lists = [];
   bool _loaded = false;
@@ -56,9 +44,6 @@ class ManualListProvider extends ChangeNotifier
     _loaded = true;
     notifyListeners();
   }
-
-  ManualListStatisticsService get statisticsService => _statisticsService;
-  ManualListSerializer get serializer => _serializer;
 
   // --- Protected accessors for mixins ---
 
@@ -102,16 +87,6 @@ class ManualListProvider extends ChangeNotifier
     final box = await Hive.openBox<String>(_boxName);
     final encoded = jsonEncode(_lists.map((e) => e.toJson()).toList());
     await box.put(_key, encoded);
-  }
-
-  @protected
-  Map<String, ProductEntity> buildProductMap() {
-    final map = <String, ProductEntity>{};
-    if (productProvider == null) return map;
-    for (final p in productProvider!.products) {
-      map[p.id] = p;
-    }
-    return map;
   }
 
   ManualListEntity? getListById(String id) {
