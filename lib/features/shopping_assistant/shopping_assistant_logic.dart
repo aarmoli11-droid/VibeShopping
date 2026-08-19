@@ -1,9 +1,10 @@
 import '../products/models/product.dart';
 import '../explorer/domain/store_model.dart';
+import '../../core/vibe_transport.dart';
 import 'shopping_assistant_data.dart';
 
 // Modos de transporte disponibles para la recomendación.
-enum TransportMode { car, bus, bike, walking }
+enum TransportMode { car, bus, moto, bike, walking }
 
 // Puntaje de una tienda para un producto.
 class StoreScore {
@@ -64,18 +65,21 @@ abstract final class ShoppingAssistantLogic {
     return switch (mode) {
       TransportMode.car => (price: 0.6, distance: 0.4),
       TransportMode.bus => (price: 0.5, distance: 0.5),
+      TransportMode.moto => (price: 0.6, distance: 0.4),
       TransportMode.bike => (price: 0.4, distance: 0.6),
       TransportMode.walking => (price: 0.3, distance: 0.7),
     };
   }
 
   // Velocidad promedio (km/h) por transporte para estimar el tiempo.
+  // Única fuente: VibeTransport (misma definición que la sección Ubicación).
   static double _speedKmh(TransportMode mode) {
     return switch (mode) {
-      TransportMode.car => 30,
-      TransportMode.bus => 20,
-      TransportMode.bike => 15,
-      TransportMode.walking => 5,
+      TransportMode.car => VibeTransport.carKmh,
+      TransportMode.bus => VibeTransport.busKmh,
+      TransportMode.moto => VibeTransport.motoKmh,
+      TransportMode.bike => VibeTransport.bikeKmh,
+      TransportMode.walking => VibeTransport.walkingKmh,
     };
   }
 
@@ -174,7 +178,7 @@ abstract final class ShoppingAssistantLogic {
         storeName: c.storeName,
         price: c.price,
         distanceKm: c.distanceKm,
-        travelMinutes: (c.distanceKm / _speedKmh(mode) * 60).ceil(),
+        travelMinutes: VibeTransport.travelMinutes(c.distanceKm, _speedKmh(mode)),
         score: score,
       );
     }).toList();

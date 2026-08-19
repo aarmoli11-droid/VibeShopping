@@ -1,5 +1,7 @@
 // Datos del mapa de supermercados de San Isidro de El General.
-// Coordenadas de referencia obtenidas de OpenStreetMap (prototipo).
+// Las tiendas se cargan desde Supabase (tabla `supermarkets`) en
+// location_demo_screen.dart; aquí quedan los tiles del mapa, la posición
+// ficticia del usuario y el cálculo de distancia (Haversine).
 
 import 'dart:math' as math;
 
@@ -14,7 +16,7 @@ abstract final class LocationDemoData {
   static const String userAgentPackageName = 'com.example.vibeshopping';
 
   // Atribución requerida por la política de OSM.
-  static const String attribution = '© OpenStreetMap contributors';
+  static const String attribution = 'VibeShopping';
 
   // Posición de referencia del usuario (centro de San Isidro).
   // En una versión real esto se reemplaza por la ubicación del GPS.
@@ -29,32 +31,7 @@ abstract final class LocationDemoData {
   static const double maxZoom = 18;
 
   // Supermercados reales de San Isidro de El General.
-  static const List<DemoStore> stores = [
-    DemoStore(
-      name: 'BM Bostón', 
-      address: 'Alameda Venegas, El Prado',
-      latitude: 9.3808282,
-      longitude: -83.7061450,
-    ),
-    DemoStore(
-      name: 'CoopeAgri San Luis',
-      address: 'Calle 14, Barrio San Luis',
-      latitude: 9.3857375,
-      longitude: -83.7065238,
-    ),
-    DemoStore(
-      name: 'Maxi Palí',
-      address: 'Vía 242, Barrio Sinaí',
-      latitude: 9.3675409,
-      longitude: -83.6964465,
-    ),
-    DemoStore(
-      name: 'Mega Súper',
-      address: 'Calle 1, España, San Isidro',
-      latitude: 9.3710061,
-      longitude: -83.7032739,
-    ),
-  ];
+  // Se cargan desde Supabase (tabla `supermarkets`) en location_demo_screen.
 
   // Radio promedio de la Tierra en kilómetros.
   static const double _earthRadiusKm = 6371.0;
@@ -78,16 +55,4 @@ abstract final class LocationDemoData {
   // Distancia del usuario a una tienda (kilómetros).
   static double distanceTo(DemoStore store) =>
       haversineKm(userLatitude, userLongitude, store.latitude, store.longitude);
-
-  // Tiempo de traslado en minutos según la velocidad (km/h).
-  static String travelTime(DemoStore store, double speedKmh) {
-    final minutes = (distanceTo(store) / speedKmh * 60).round();
-    return '$minutes min';
-  }
-
-  // Velocidades promedio (estimaciones de referencia del prototipo).
-  static const double walkSpeedKmh = 5;
-  static const double bikeSpeedKmh = 15;
-  static const double motoSpeedKmh = 35;
-  static const double carSpeedKmh = 40;
 }

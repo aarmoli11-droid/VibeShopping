@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import '../models/app_user.dart';
 import '../services/supabase_auth_service.dart';
 
@@ -8,9 +9,10 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider({required SupabaseAuthService authService})
       : _authService = authService {
     _authSubscription = _authService.onAuthChange.listen((user) {
+      // Solo se actualiza el usuario. La carga y el error los gestionan las
+      // operaciones (signIn/signUp/...) en su try/finally, para que un evento
+      // de autenticación no borre el error ni interrumpa la carga en curso.
       _user = user;
-      _isLoading = false;
-      _error = null;
       notifyListeners();
     });
     _user = _authService.currentUser;
@@ -36,7 +38,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       _user = await _authService.signIn(email, password);
     } catch (error) {
-      _error = error.toString();
+      _error = _friendlyError(error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -53,7 +55,7 @@ class AuthProvider extends ChangeNotifier {
       _user =
           await _authService.signUp(email, password, displayName: displayName);
     } catch (error) {
-      _error = error.toString();
+      _error = _friendlyError(error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -68,7 +70,7 @@ class AuthProvider extends ChangeNotifier {
       await _authService.signOut();
       _user = null;
     } catch (error) {
-      _error = error.toString();
+      _error = _friendlyError(error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -83,7 +85,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _authService.resetPassword(email);
     } catch (error) {
-      _error = error.toString();
+      _error = _friendlyError(error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -94,5 +96,23 @@ class AuthProvider extends ChangeNotifier {
   void dispose() {
     _authSubscription?.cancel();
     super.dispose();
+  }
+
+  // Traduce excepciones de autenticación a mensajes claros para la UI.
+  String _friendlyError(Object error) {
+    if (error is AuthException) {
+      final message = error.message.toLowerCase();
+      if (message.contains('invalid login credentials') ||
+          message.contains('invalid credentials') ||
+          message.contains('email not confirmed')) {
+        return 'Correo o contraseña incorrectos.';
+      }
+      if (message.contains('rate limit') ||
+          message.contains('too many requests')) {
+        return 'Demasiados intentos. Inténtalo de nuevo más tarde.';
+      }
+      return error.message;
+    }
+    return 'No se pudo conectar con el servicio. Verifica tu conexión e inténtalo de nuevo.';
   }
 }

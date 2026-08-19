@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/vibe_constants.dart';
+import '../../core/vibe_transport.dart';
 import 'location_demo_data.dart';
 import 'location_demo_store.dart';
 
@@ -92,26 +93,26 @@ class _StoreDetailsSheet extends StatelessWidget {
                 _DetailItem(
                   icon: Icons.directions_car_rounded,
                   label: 'Auto',
-                  value: LocationDemoData.travelTime(
-                      store, LocationDemoData.carSpeedKmh),
+                  value: VibeTransport.formatMinutes(
+                      VibeTransport.travelMinutes(distance, VibeTransport.carKmh)),
                 ),
                 _DetailItem(
                   icon: Icons.two_wheeler_rounded,
                   label: 'Moto',
-                  value: LocationDemoData.travelTime(
-                      store, LocationDemoData.motoSpeedKmh),
+                  value: VibeTransport.formatMinutes(VibeTransport.travelMinutes(
+                      distance, VibeTransport.motoKmh)),
                 ),
                 _DetailItem(
                   icon: Icons.directions_bike_rounded,
-                  label: 'Bici',
-                  value: LocationDemoData.travelTime(
-                      store, LocationDemoData.bikeSpeedKmh),
+                  label: 'Bicicleta',
+                  value: VibeTransport.formatMinutes(
+                      VibeTransport.travelMinutes(distance, VibeTransport.bikeKmh)),
                 ),
                 _DetailItem(
                   icon: Icons.directions_walk_rounded,
-                  label: 'A pie',
-                  value: LocationDemoData.travelTime(
-                      store, LocationDemoData.walkSpeedKmh),
+                  label: 'Caminando',
+                  value: VibeTransport.formatMinutes(VibeTransport.travelMinutes(
+                      distance, VibeTransport.walkingKmh)),
                 ),
               ],
             ),

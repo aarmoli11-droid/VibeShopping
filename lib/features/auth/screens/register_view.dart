@@ -57,15 +57,10 @@ class _RegisterViewState extends State<RegisterView> {
           displayName: _nameController.text.trim(),
         );
 
+    // En caso de éxito reemplaza el registro por el explorador. Si hay error,
+    // el mensaje se muestra en línea y el formulario conserva sus datos.
     final auth = context.read<AuthProvider>();
-    if (auth.error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${auth.error}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } else if (auth.isLoggedIn && mounted) {
+    if (auth.isLoggedIn && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ExplorerShell()),
@@ -171,6 +166,35 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                   ),
                   const SizedBox(height: 26),
+                  if (auth.error != null) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFCE4EC),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 20, color: Color(0xFFC62828)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              auth.error!,
+                              style: const TextStyle(
+                                color: Color(0xFFC62828),
+                                fontSize: 13.5,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   FilledButton(
                     onPressed: auth.isLoading ? null : () => _submit(),
                     style: AuthGatewayStyles.primaryButtonStyle,

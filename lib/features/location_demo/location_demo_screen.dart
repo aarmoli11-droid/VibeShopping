@@ -1,14 +1,19 @@
 // Mapa real de San Isidro de El General con supermercados,
 // distancias y tiempos de traslado (flutter_map + OpenStreetMap).
+// Las tiendas se cargan desde Supabase (tabla `supermarkets`).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/data/supabase/supabase_product_repository.dart';
 import '../../core/vibe_constants.dart';
 import 'location_demo_data.dart';
 import 'location_demo_details_sheet.dart';
 import 'location_demo_map_widgets.dart';
+import 'location_demo_stores.dart';
+import 'location_demo_store.dart';
 
 class LocationDemoScreen extends StatefulWidget {
   const LocationDemoScreen({super.key});
@@ -19,6 +24,55 @@ class LocationDemoScreen extends StatefulWidget {
 
 class _LocationDemoScreenState extends State<LocationDemoScreen> {
   final MapController _mapController = MapController();
+
+  List<DemoStore> _stores = const [];
+  bool _loading = true;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadStores());
+  }
+
+  // Carga las tiendas desde Supabase (misma fuente que el asistente).
+  // Si la consulta REST devuelve 0 (permisos RLS en Web autenticado), usa
+  // los datos locales de respaldo para que el mapa siempre muestre marcadores.
+  Future<void> _loadStores() async {
+    try {
+      final supermarkets =
+          await context.read<SupabaseProductRepository>().listSupermarkets();
+      if (!mounted) return;
+
+      final loaded = <DemoStore>[];
+      for (final store in supermarkets) {
+        final lat = store.latitude;
+        final lng = store.longitude;
+        if (lat == null || lng == null) continue;
+        loaded.add(DemoStore(
+          name: store.name,
+          address: store.locations.isNotEmpty
+              ? store.locations.first.address ?? ''
+              : '',
+          latitude: lat,
+          longitude: lng,
+        ));
+      }
+
+      setState(() {
+        _stores = loaded.isEmpty ? LocationDemoStores.stores : loaded;
+        _loading = false;
+        _hasError = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _stores = LocationDemoStores.stores;
+        _loading = false;
+        _hasError = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -50,7 +104,32 @@ class _LocationDemoScreenState extends State<LocationDemoScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Expanded(child: _buildMap()),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _hasError
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.cloud_off_rounded,
+                                    size: 40, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text(
+                                  'No se pudieron cargar los supermercados.\n'
+                                  'Verifica tu conexión e inténtalo de nuevo.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : _buildMap(),
+            ),
             const SizedBox(height: 8),
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -111,10 +190,10 @@ class _LocationDemoScreenState extends State<LocationDemoScreen> {
     );
   }
 
-  // Marcadores de las tiendas y de la ubicación del usuario.
+  // Marcadores de las tiendas (desde Supabase) y de la ubicación del usuario.
   List<Marker> _buildMarkers() {
     return [
-      for (final store in LocationDemoData.stores)
+      for (final store in _stores)
         Marker(
           point: LatLng(store.latitude, store.longitude),
           width: 120,

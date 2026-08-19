@@ -3,12 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:vibeshopping/core/vibe_constants.dart';
 import 'package:vibeshopping/features/auth/helpers/auth_styles.dart';
 import 'package:vibeshopping/features/auth/widgets/auth_wave_header.dart';
-import 'package:vibeshopping/features/explorer/screens/explorer_shell.dart';
 import '../providers/auth_provider.dart';
 import 'forgot_password_view.dart';
 import 'register_view.dart';
 
-// Pantalla de inicio de sesión: formulario + validación + navegación.
+// Pantalla de inicio de sesión: formulario + validación + estado de carga.
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -21,7 +20,9 @@ class _LoginViewState extends State<LoginView> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-  // Valida y envía credenciales; en caso de éxito navega al explorador.
+  // Valida y envía credenciales. La navegación al explorador la resuelve
+  // AuthGate cuando isLoggedIn cambia; aquí no se navega manualmente para no
+  // duplicar la pantalla ni perder los datos del formulario.
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -39,21 +40,6 @@ class _LoginViewState extends State<LoginView> {
     }
 
     await context.read<AuthProvider>().signIn(email, password);
-
-    final auth = context.read<AuthProvider>();
-    if (auth.error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${auth.error}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } else if (auth.isLoggedIn && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ExplorerShell()),
-      );
-    }
   }
 
   @override
@@ -141,6 +127,36 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 18),
+                  if (auth.error != null) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFCE4EC),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              size: 20, color: Color(0xFFC62828)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              auth.error!,
+                              style: const TextStyle(
+                                color: Color(0xFFC62828),
+                                fontSize: 13.5,
+                                height: 1.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 18),
                   FilledButton(
                     onPressed: auth.isLoading ? null : () => _submit(),

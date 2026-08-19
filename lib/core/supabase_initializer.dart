@@ -7,8 +7,8 @@ Future<void> initializeVibeSupabase() async {
   if (!VibeSupabaseConfig.isConfigured) {
     throw StateError(
       'Falta SUPABASE_URL o SUPABASE_ANON_KEY.\n'
-      'Ejecuta: flutter run --dart-define=SUPABASE_URL=<url> '
-      '--dart-define=SUPABASE_ANON_KEY=<key>',
+      'Completa .env en la raíz del proyecto y ejecuta:\n'
+      '  flutter run --dart-define-from-file=.env',
     );
   }
 

@@ -32,6 +32,7 @@ const USER_LONGITUDE = -83.7025;
 const SPEED_KMH: Record<string, number> = {
   car: 30,
   bus: 20,
+  moto: 35,
   bike: 15,
   walking: 5,
 };
@@ -39,15 +40,17 @@ const SPEED_KMH: Record<string, number> = {
 const WEIGHTS: Record<string, { price: number; distance: number }> = {
   car: { price: 0.6, distance: 0.4 },
   bus: { price: 0.5, distance: 0.5 },
+  moto: { price: 0.6, distance: 0.4 },
   bike: { price: 0.4, distance: 0.6 },
   walking: { price: 0.3, distance: 0.7 },
 };
 
 const TRANSPORT_LABELS: Record<string, string> = {
-  car: "carro",
-  bus: "bus",
-  bike: "bicicleta",
-  walking: "a pie",
+  car: "Carro",
+  bus: "Bus",
+  moto: "Motocicleta",
+  bike: "Bicicleta",
+  walking: "Caminando",
 };
 
 // Palabras que no son productos: artículos, pronombres, verbos de compra,
@@ -103,16 +106,16 @@ const SYSTEM_PROMPT =
   "- Si el bloque incluye 'Recomendación de VibeShopping', explícala: menciona el supermercado " +
   "recomendado y por qué conviene (precio y/o distancia con el transporte indicado).\n\n" +
   "Pregunta por el transporte solo cuando sea necesario:\n" +
-  "- Pregunta '¿Cómo te vas a transportar? (en carro, en bus, en bici o a pie)' SOLO si la respuesta " +
+  "- Pregunta '¿Cómo te vas a transportar? (Bus, Carro, Motocicleta, Bicicleta, Caminando)' SOLO si la respuesta " +
   "requiere recomendar una tienda considerando distancia o tiempo de traslado Y el bloque indica " +
   "'Transporte del usuario: no indicado'. Ejemplos que requieren preguntar: '¿Dónde me conviene " +
   "comprar X?', '¿Dónde compro X?', '¿Cuál supermercado queda mejor o más cerca?'. Sé breve.\n" +
-  "- El usuario responde directamente en el chat ('en carro', 'en bus', 'en bici', 'a pie'); en el " +
+  "- El usuario responde directamente en el chat ('Bus', 'Carro', 'Motocicleta', 'Bicicleta', 'Caminando'); en el " +
   "siguiente turno VibeShopping recalcula con ese transporte.\n" +
   "- NO preguntes transporte si la consulta solo pide precios o compara precios ('¿Cuánto cuesta X?', " +
   "'¿Dónde está más barato X?', 'quiero gastar lo menos posible', 'lo más barato'), ni si el usuario ya " +
   "indicó el transporte.\n" +
-  "- Cuando el usuario responda con el transporte (por ejemplo 'en carro', 'a pie', 'en bici'), usa la " +
+  "- Cuando el usuario responda con el transporte (por ejemplo 'Carro', 'Caminando', 'Bicicleta', 'Bus', 'Motocicleta'), usa la " +
   "nueva consulta de VibeShopping para continuar con la recomendación; no repitas la pregunta anterior.\n\n" +
   "Si NO hay bloque 'Datos calculados por VibeShopping' (por ejemplo porque no se encontró el " +
   "producto en el catálogo), conversa y orienta sobre compras, pero nunca inventes cifras ni " +
@@ -125,7 +128,7 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
 };
 
 interface CatalogRow {
@@ -186,6 +189,7 @@ function detectTransport(messages: { role: string; text: string }[]): string | n
   if (/(^|\s)a pie(\s|$)|caminando|caminar|camine|andando/.test(text)) return "walking";
   if (/\bbici\b|bicicleta/.test(text)) return "bike";
   if (/\bbus(es)?\b|autobus|autobuses/.test(text)) return "bus";
+  if (/\bmoto\b|motocicleta/.test(text)) return "moto";
   if (/\bcarro(s)?\b|\bauto(s)?\b|vehiculo|manej|conduc/.test(text)) return "car";
   return null;
 }
@@ -222,7 +226,7 @@ function travelMinutes(distanceKm: number, transport: string): number {
 }
 
 function transportLabel(transport: string): string {
-  return TRANSPORT_LABELS[transport] ?? "carro";
+  return TRANSPORT_LABELS[transport] ?? "Carro";
 }
 
 function formatColones(value: number): string {
@@ -441,7 +445,9 @@ Deno.serve(async (req) => {
   // Transporte: se detecta en la conversación (cualquier turno del usuario).
   // Fallback al campo `transport` por compatibilidad con llamadas anteriores.
   const rawTransport = typeof body?.transport === "string" ? body.transport : "";
-  const bodyTransport = ["car", "bus", "bike", "walking"].includes(rawTransport)
+  const bodyTransport = ["car", "bus", "moto", "bike", "walking"].includes(
+    rawTransport,
+  )
     ? rawTransport
     : null;
   const transport = detectTransport(messages) ?? bodyTransport;
